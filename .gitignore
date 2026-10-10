@@ -1,0 +1,18 @@
+# Local builds and SDK caches
+**/bin/
+**/obj/
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Local probes, logs and reference downloads
+/work/
+*.log
+
+# Reproducible release output; attach ZIP to GitHub Releases instead
+/dist/
+
+# Keep only the checked-in default config template
+*.cfg
+!/Config/sprocket.advancedaps.cfg

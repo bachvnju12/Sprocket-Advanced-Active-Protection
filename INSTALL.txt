@@ -1,83 +1,62 @@
 SPROCKET ADVANCED APS (SAAPS) - INSTALL GUIDE
-=============================================
-
+============================================
 Version: 1.0.0
-Game: Sprocket 0.2.55.5
-Loader: Sprocket Mod Loader (BepInEx 6 IL2CPP)
+Game: Sprocket 0.2.55.5 / Unity 6000.3.21f1 / Windows x64
+Loader: BepInEx 6.0.0-be.788 IL2CPP
+Dependency: Sprocket Mod API >=1.1.0, <2.0.0
 
-PREREQUISITES
--------------
-1. Sprocket 0.2.55.5 installed.
-2. BepInEx 6.0.0-be.788 (IL2CPP) installed in the Sprocket directory.
-3. Sprocket Mod API 1.1.x installed (required dependency).
+INSTALL
+-------
+1. Close Sprocket. Back up existing SAAPS files and customized config.
+2. Extract release ZIP directly beside Sprocket.exe, not inside another folder.
+   ZIP root contains:
+   BepInEx/plugins/SprocketAdvancedAPS.dll
+   BepInEx/plugins/SprocketAdvancedAPS/sprocket-mod.json
+   BepInEx/plugins/SprocketAdvancedAPS/meshes/saaps_*.json (10)
+   BepInEx/plugins/SprocketAdvancedAPS/icons/saaps_*.png (10)
+   BepInEx/plugins/SprocketAdvancedAPS/textures/saaps_surfaces.png
+   Sprocket_Data/StreamingAssets/Parts/saaps_*Part.json (10)
+   Sprocket_Data/StreamingAssets/Localization/en-UK/Parts/saaps_*.xml (10)
+   ConfigExamples/sprocket.advancedaps.cfg
+   README.md, INSTALL.txt, CHANGELOG.md, CREDITS.md, VERIFICATION.md, LICENSE
+   SHA256SUMS.txt
+3. Existing BepInEx/config/sprocket.advancedaps.cfg is NOT overwritten.
+   BepInEx creates defaults on first run. Optional template lives under
+   ConfigExamples; copy it to BepInEx/config only when no customized config exists.
+4. Launch game. Open Firepower > Active Protection Systems.
+   Old APS saved as add-on structures must be replaced with new model parts;
+   existing saaps_<system> model components retain their identity.
 
-INSTALL STEPS
--------------
-1. Close Sprocket.
-2. Download the SAAPS release ZIP.
-3. Extract the ZIP into the directory that contains Sprocket.exe.
-   The ZIP contains:
+CONFIG
+------
+Runtime reads BepInEx/config/sprocket.advancedaps.cfg.
+Config/default-aps-profiles.json in source is reference data, NOT a loaded preset.
+Speed limits and probability multipliers are gameplay approximations.
+Soft-kill cone is compiled: 30 degrees horizontal (plus/minus 15),
+20 degrees vertical (plus/minus 10), around module local +Z.
+HUD, F7 coverage and inspector rendering are not implemented.
 
-   SprocketAdvancedAPS/
-   ├── BepInEx/
-   │   ├── plugins/
-   │   │   ├── SprocketAdvancedAPS.dll
-   │   │   └── SprocketAdvancedAPS/
-   │   │       ├── Config/
-   │   │       │   └── default-aps-profiles.json
-   │   │       ├── Assets/
-   │   │       │   ├── Models/
-   │   │       │   ├── Icons/
-   │   │       │   └── Audio/
-   │   │       └── Parts/
-   │   │           ├── drozd1RadarPart.json
-   │   │           ├── drozd1LauncherPart.json
-   │   │           ├── drozd1SensorPart.json
-   │   │           ├── ... (30 part files total)
-   │   │           └── zaslinSensorPart.json
-   │   └── config/
-   │       └── sprocket.advancedaps.cfg  (created on first run)
-   ├── README.md
-   ├── INSTALL.txt
-   ├── CHANGELOG.md
-   ├── CREDITS.md
-   ├── VERIFICATION.md
-   └── LICENSE
+VERIFY
+------
+Check BepInEx/LogOutput.log for "[SAAPS] APS model-part runtime loaded".
+Enable General/DebugMode for detection/engagement/release logs.
+Offline build/tests/ZIP hashes do not prove in-game camo or tracer appearance.
+See VERIFICATION.md for remaining live checks.
 
-4. Launch Sprocket.
-5. Open the Vehicle Designer. APS parts appear under the
-   "Active Protection Systems" category (tagged aps, apsRadar,
-   apsLauncher, apsSensor).
+UPGRADE / UNINSTALL
+-------------------
+Upgrade: back up SAAPS files, then replace ZIP files with game closed.
+Keep customized runtime config. Do not remove or replace other mods.
+Uninstall: delete only listed SAAPS plugin/assets, ten saaps_* part definitions
+and ten saaps_* localization files. Optionally remove SAAPS runtime config.
+Blueprints referencing removed parts may need those parts removed in Designer.
 
-VERIFYING INSTALLATION
-----------------------
-- Open the game's mod menu; "Sprocket Advanced APS" should be listed.
-- Check BepInEx/LogOutput.log for:
-  "[SAAPS] Sprocket Advanced APS v1.0.0 loaded successfully!"
-- In the Vehicle Designer, search for "Drozd", "Arena", "Afganit",
-  "Shtora", "Trophy", "Iron Fist", "AMAP-ADS", or "Zaslin".
-
-TROUBLESHOOTING
----------------
-- If the mod does not load, confirm Sprocket Mod API 1.1.x is installed.
-- If APS parts do not appear, confirm the Parts/*.json files are in
-  BepInEx/plugins/SprocketAdvancedAPS/Parts/.
-- If APS does not engage, enable DebugMode in the config and check
-  LogOutput.log for [SAAPS] DETECTED / ENGAGE / INTERCEPT lines.
-- If another mod registers the same part GUID, a conflict will be
-  logged; the conflicting mod should be removed.
-
-UNINSTALLATION
---------------
-1. Close Sprocket.
-2. Delete BepInEx/plugins/SprocketAdvancedAPS.dll.
-3. Delete BepInEx/plugins/SprocketAdvancedAPS/.
-4. Optionally delete BepInEx/config/sprocket.advancedaps.cfg.
-5. Saved vehicle blueprints referencing removed APS parts will show
-   those parts as missing; remove them in the Designer.
-
-UPGRADING
----------
-1. Back up BepInEx/config/sprocket.advancedaps.cfg.
-2. Replace the DLL and Parts/ directory.
-3. Restore your config if you customized it.
+BUILD RELEASE FROM SOURCE
+-------------------------
+powershell -NoProfile -ExecutionPolicy Bypass -File release.ps1
+Optional: -GameRoot "D:\Games\Sprocket" -OutputRoot "D:\Releases\SAAPS"
+Requires .NET 6 SDK and installed game/BepInEx/ModAPI assemblies.
+Runs offline tests, builds Release without deploy, packages ZIP and verifies hashes.
+Output: dist/SprocketAdvancedAPS-1.0.0-<timestamp>.zip and .zip.sha256.
+Do not commit dist/, bin/, obj/, work/ or local game configs.
+Attach ZIP and its checksum to a GitHub Release separately.
