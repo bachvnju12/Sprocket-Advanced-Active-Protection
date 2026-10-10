@@ -1,0 +1,66 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>SprocketAdvancedAPS</AssemblyName>
+    <RootNamespace>SprocketAdvancedAPS</RootNamespace>
+
+    <!-- Keep these three in sync with the git tag and ModVersion in Main.cs. -->
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PlatformTarget>x64</PlatformTarget>
+
+    <Description>Advanced Active Protection Systems for Sprocket - Realistic APS simulation with 10 historical systems</Description>
+    <Authors>SAAPS Team</Authors>
+    <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/SAAPS/SprocketAdvancedAPS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+    <!-- Game install the referenced assemblies are read from. Override it when the
+         repository does not sit next to the game:
+           dotnet build ... -p:SprocketGameRoot="D:\Steam\Sprocket"
+         or set the SPROCKET_GAME_ROOT environment variable. The default assumes this
+         project lives at <game>\SAAPS\src\SAAPS. -->
+    <SprocketGameRoot Condition="'$(SprocketGameRoot)' == '' and '$(SPROCKET_GAME_ROOT)' != ''">$(SPROCKET_GAME_ROOT)</SprocketGameRoot>
+    <SprocketGameRoot Condition="'$(SprocketGameRoot)' == '' and Exists('D:\SteamLibrary\steamapps\common\Sprocket\BepInEx\core')">D:\SteamLibrary\steamapps\common\Sprocket</SprocketGameRoot>
+    <SprocketGameRoot Condition="'$(SprocketGameRoot)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\..\..'))</SprocketGameRoot>
+    <BepInExCore>$(SprocketGameRoot)\BepInEx\core</BepInExCore>
+    <GameInterop>$(SprocketGameRoot)\BepInEx\interop</GameInterop>
+    <ModDeployDirectory Condition="'$(ModDeployDirectory)' == ''">$(SprocketGameRoot)\BepInEx\plugins</ModDeployDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="$(BepInExCore)\*.dll" Exclude="$(BepInExCore)\TerraFX*.dll;$(BepInExCore)\dobby.dll">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="$(GameInterop)\*.dll">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="SprocketModAPI">
+      <HintPath>$(SprocketGameRoot)\BepInEx\plugins\SprocketModAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Copy built assets to output -->
+  <ItemGroup>
+    <None Update="assets\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Config\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!-- Drops the built DLL into the game next to the other plugins. Pass
+       -p:SkipModDeploy=true for a build that only writes to bin\. -->
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(SkipModDeploy)' != 'true'">
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ModDeployDirectory)" />
+    <Copy SourceFiles="$(TargetDir)SAAPS.dll.config" DestinationFolder="$(ModDeployDirectory)" Condition="Exists('$(TargetDir)SAAPS.dll.config')" />
+  </Target>
+
+</Project>

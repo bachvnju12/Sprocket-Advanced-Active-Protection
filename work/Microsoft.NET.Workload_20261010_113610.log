@@ -1,0 +1,14 @@
+[2026-10-10 11:36:10.363] [00002BBC] === Logging started ===
+[2026-10-10 11:36:10.465] [00002BBC] Executing: "C:\Program Files\dotnet\dotnet.exe" run --project tests\RegistryCheck.csproj -- generated\Sprocket_Data\StreamingAssets\Parts, PID: 11196, PPID: 5040
+[2026-10-10 11:36:10.478] [00002BBC] IsElevated: False
+[2026-10-10 11:36:10.478] [00002BBC] Is64BitProcess: True
+[2026-10-10 11:36:10.479] [00002BBC] RebootPending: False
+[2026-10-10 11:36:10.479] [00002BBC] ProcessorArchitecture: amd64
+[2026-10-10 11:36:10.479] [00002BBC] HostArchitecture: x64
+[2026-10-10 11:36:10.479] [00002BBC] SdkDirectory: 6.0.428
+[2026-10-10 11:36:10.479] [00002BBC] VerifySignatures: False
+[2026-10-10 11:36:10.479] [00002BBC] SDK feature band: 6.0.400
+[2026-10-10 11:36:21.059] [00002BBC] Shutting down
+[2026-10-10 11:36:21.061] [00002BBC] Shutdown completed.
+[2026-10-10 11:36:21.061] [00002BBC] Restart required: False
+[2026-10-10 11:36:21.062] [00002BBC] === Logging ended ===

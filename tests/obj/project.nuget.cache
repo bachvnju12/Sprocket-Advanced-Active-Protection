@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "5JcZ8rwW20oXHSH8GrYzC+Im2LqcVKipTuSG1rLeYf5iH8a8Vedde2wFO1vWoQEvoRqZus8wYZPa3uXnzcZy3A==",
+  "success": true,
+  "projectFilePath": "D:\\workspace\\sporketmod\\SAAPS\\tests\\RegistryCheck.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.36\\microsoft.windowsdesktop.app.ref.6.0.36.nupkg.sha512",
+    "C:\\Users\\Admin\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.36\\microsoft.aspnetcore.app.ref.6.0.36.nupkg.sha512"
+  ],
+  "logs": []
+}

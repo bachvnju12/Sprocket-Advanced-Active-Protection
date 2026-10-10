@@ -1,0 +1,14 @@
+[2026-10-10 10:23:34.502] [0000362C] === Logging started ===
+[2026-10-10 10:23:34.541] [0000362C] Executing: "C:\Program Files\dotnet\dotnet.exe" build D:\workspace\sporketmod\SAAPS\src\SAAPS\SAAPS.csproj --configuration Release --no-restore -p:SkipModDeploy=true, PID: 13868, PPID: 1696
+[2026-10-10 10:23:34.552] [0000362C] IsElevated: False
+[2026-10-10 10:23:34.552] [0000362C] Is64BitProcess: True
+[2026-10-10 10:23:34.552] [0000362C] RebootPending: False
+[2026-10-10 10:23:34.552] [0000362C] ProcessorArchitecture: amd64
+[2026-10-10 10:23:34.552] [0000362C] HostArchitecture: x64
+[2026-10-10 10:23:34.552] [0000362C] SdkDirectory: 6.0.428
+[2026-10-10 10:23:34.552] [0000362C] VerifySignatures: False
+[2026-10-10 10:23:34.552] [0000362C] SDK feature band: 6.0.400
+[2026-10-10 10:23:36.786] [0000362C] Shutting down
+[2026-10-10 10:23:36.786] [0000362C] Shutdown completed.
+[2026-10-10 10:23:36.786] [0000362C] Restart required: False
+[2026-10-10 10:23:36.787] [0000362C] === Logging ended ===

@@ -1,0 +1,5 @@
+D:\workspace\sporketmod\SAAPS\src\SAAPS\obj\Debug\net6.0\SAAPS.csproj.AssemblyReference.cache
+D:\workspace\sporketmod\SAAPS\src\SAAPS\obj\Debug\net6.0\SAAPS.GeneratedMSBuildEditorConfig.editorconfig
+D:\workspace\sporketmod\SAAPS\src\SAAPS\obj\Debug\net6.0\SAAPS.AssemblyInfoInputs.cache
+D:\workspace\sporketmod\SAAPS\src\SAAPS\obj\Debug\net6.0\SAAPS.AssemblyInfo.cs
+D:\workspace\sporketmod\SAAPS\src\SAAPS\obj\Debug\net6.0\SAAPS.csproj.CoreCompileInputs.cache

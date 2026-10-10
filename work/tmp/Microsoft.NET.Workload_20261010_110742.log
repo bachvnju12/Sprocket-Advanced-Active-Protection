@@ -1,0 +1,14 @@
+[2026-10-10 11:07:42.519] [00002A78] === Logging started ===
+[2026-10-10 11:07:42.581] [00002A78] Executing: "C:\Program Files\dotnet\dotnet.exe" build D:\workspace\sporketmod\_probe\dump\IlDump.csproj -c Release --nologo, PID: 10872, PPID: 16820
+[2026-10-10 11:07:42.618] [00002A78] IsElevated: False
+[2026-10-10 11:07:42.619] [00002A78] Is64BitProcess: True
+[2026-10-10 11:07:42.619] [00002A78] RebootPending: False
+[2026-10-10 11:07:42.619] [00002A78] ProcessorArchitecture: amd64
+[2026-10-10 11:07:42.619] [00002A78] HostArchitecture: x64
+[2026-10-10 11:07:42.619] [00002A78] SdkDirectory: 6.0.428
+[2026-10-10 11:07:42.619] [00002A78] VerifySignatures: False
+[2026-10-10 11:07:42.619] [00002A78] SDK feature band: 6.0.400
+[2026-10-10 11:07:53.423] [00002A78] Shutting down
+[2026-10-10 11:07:53.424] [00002A78] Shutdown completed.
+[2026-10-10 11:07:53.424] [00002A78] Restart required: False
+[2026-10-10 11:07:53.436] [00002A78] === Logging ended ===

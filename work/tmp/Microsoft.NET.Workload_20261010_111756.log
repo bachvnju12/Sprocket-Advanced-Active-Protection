@@ -1,0 +1,14 @@
+[2026-10-10 11:17:56.504] [00004214] === Logging started ===
+[2026-10-10 11:17:56.587] [00004214] Executing: "C:\Program Files\dotnet\dotnet.exe" run --project D:\workspace\sporketmod\SAAPS\tests\RegistryCheck.csproj -c Release --no-restore -- D:\workspace\sporketmod\SAAPS\generated\Sprocket_Data\StreamingAssets\Parts, PID: 16916, PPID: 8800
+[2026-10-10 11:17:56.602] [00004214] IsElevated: False
+[2026-10-10 11:17:56.602] [00004214] Is64BitProcess: True
+[2026-10-10 11:17:56.602] [00004214] RebootPending: False
+[2026-10-10 11:17:56.602] [00004214] ProcessorArchitecture: amd64
+[2026-10-10 11:17:56.602] [00004214] HostArchitecture: x64
+[2026-10-10 11:17:56.602] [00004214] SdkDirectory: 6.0.428
+[2026-10-10 11:17:56.602] [00004214] VerifySignatures: False
+[2026-10-10 11:17:56.602] [00004214] SDK feature band: 6.0.400
+[2026-10-10 11:18:03.024] [00004214] Shutting down
+[2026-10-10 11:18:03.025] [00004214] Shutdown completed.
+[2026-10-10 11:18:03.025] [00004214] Restart required: False
+[2026-10-10 11:18:03.025] [00004214] === Logging ended ===

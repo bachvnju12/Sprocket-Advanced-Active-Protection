@@ -1,0 +1,247 @@
+﻿=== Sprocket.DamageModelling.ProjectileRegister (base=Object) ===
+  field IntPtr NativeFieldInfoPtr_RifledBoreRotationRate
+  field IntPtr NativeFieldInfoPtr_UpdateProfilerMarker
+  field IntPtr NativeFieldInfoPtr_engineObjectFactory
+  field IntPtr NativeFieldInfoPtr_definitionSource
+  field IntPtr NativeFieldInfoPtr_physicsLayerMask
+  field IntPtr NativeFieldInfoPtr_activeIdMap
+  field IntPtr NativeFieldInfoPtr_initialCapacity
+  field IntPtr NativeFieldInfoPtr_pool
+  field IntPtr NativeFieldInfoPtr_nextFreeIndex
+  field IntPtr NativeFieldInfoPtr_nextID
+  field IntPtr NativeFieldInfoPtr_projectileHistory
+  field IntPtr NativeFieldInfoPtr__Context_k__BackingField
+  field IntPtr NativeMethodInfoPtr__ctor_Public_Void_Int32_Int32_IProjectileEngineObjectFactory_IProjectileDefinitionSource_0
+  field IntPtr NativeMethodInfoPtr_get_Context_Public_Virtual_Final_New_get_ProjectileFunctionContext_0
+  field IntPtr NativeMethodInfoPtr_set_Context_Public_Virtual_Final_New_set_Void_ProjectileFunctionContext_0
+  field IntPtr NativeMethodInfoPtr_Launch_Public_Void_Object_byref_ProjectileLaunchState_byref_ProjectileLauncherInfo_ProjectileTypeID_byref_ProjectileFireInfo_0
+  field IntPtr NativeMethodInfoPtr_GetNextID_Private_Int32_0
+  field IntPtr NativeMethodInfoPtr_Release_Private_Void_Int32_0
+  field IntPtr NativeMethodInfoPtr_FixedUpdate_Public_Virtual_Final_New_Void_0
+  field IntPtr NativeMethodInfoPtr_DestroyAll_Public_Virtual_Final_New_Void_0
+  field IntPtr NativeMethodInfoPtr_GetFreeProjectileIndex_Private_Int32_0
+  field IntPtr NativeMethodInfoPtr_TryGetProjectileProjectileInfo_Public_Virtual_Final_New_Boolean_Int32_byref_ProjectileInstanceInfo_0
+  field IntPtr NativeMethodInfoPtr_Sprocket_DamageModelling_IProjectileFactory_Launch_Private_Virtual_Final_New_Void_Object_byref_ProjectileLaunchState_byref_ProjectileLauncherInfo_ProjectileTypeID_byref_ProjectileFireInfo_0
+  prop  Int32 RifledBoreRotationRate
+  prop  ProfilerMarker UpdateProfilerMarker
+  prop  IProjectileEngineObjectFactory engineObjectFactory
+  prop  IProjectileDefinitionSource definitionSource
+  prop  Int32 physicsLayerMask
+  prop  Dictionary`2 activeIdMap
+  prop  Int32 initialCapacity
+  prop  Il2CppReferenceArray`1 pool
+  prop  Int32 nextFreeIndex
+  prop  Int32 nextID
+  prop  Dictionary`2 projectileHistory
+  prop  ProjectileFunctionContext _Context_k__BackingField
+  prop  ProjectileFunctionContext Context
+  meth  Void Launch(Object source, ProjectileLaunchState& launchState, ProjectileLauncherInfo& launcherInfo, ProjectileTypeID projectileTypeID, ProjectileFireInfo& fireInfo)
+  meth  Int32 GetNextID()
+  meth  Void Release(Int32 projectileID)
+  meth  Void FixedUpdate()
+  meth  Void DestroyAll()
+  meth  Int32 GetFreeProjectileIndex()
+  meth  Boolean TryGetProjectileProjectileInfo(Int32 projectileID, ProjectileInstanceInfo& info)
+  meth  Void Sprocket_DamageModelling_IProjectileFactory_Launch(Object source, ProjectileLaunchState& launchState, ProjectileLauncherInfo& launcherInfo, ProjectileTypeID projectileTypeID, ProjectileFireInfo& fireInfo)
+=== Il2CppSprocket.DamageModelling.ProjectileRegister (base=Object) ===
+  field IntPtr NativeFieldInfoPtr_RifledBoreRotationRate
+  field IntPtr NativeFieldInfoPtr_UpdateProfilerMarker
+  field IntPtr NativeFieldInfoPtr_engineObjectFactory
+  field IntPtr NativeFieldInfoPtr_definitionSource
+  field IntPtr NativeFieldInfoPtr_physicsLayerMask
+  field IntPtr NativeFieldInfoPtr_activeIdMap
+  field IntPtr NativeFieldInfoPtr_initialCapacity
+  field IntPtr NativeFieldInfoPtr_pool
+  field IntPtr NativeFieldInfoPtr_nextFreeIndex
+  field IntPtr NativeFieldInfoPtr_nextID
+  field IntPtr NativeFieldInfoPtr_projectileHistory
+  field IntPtr NativeFieldInfoPtr__Context_k__BackingField
+  field IntPtr NativeMethodInfoPtr__ctor_Public_Void_Int32_Int32_IProjectileEngineObjectFactory_IProjectileDefinitionSource_0
+  field IntPtr NativeMethodInfoPtr_get_Context_Public_Virtual_Final_New_get_ProjectileFunctionContext_0
+  field IntPtr NativeMethodInfoPtr_set_Context_Public_Virtual_Final_New_set_Void_ProjectileFunctionContext_0
+  field IntPtr NativeMethodInfoPtr_Launch_Public_Void_Object_byref_ProjectileLaunchState_byref_ProjectileLauncherInfo_ProjectileTypeID_byref_ProjectileFireInfo_0
+  field IntPtr NativeMethodInfoPtr_GetNextID_Private_Int32_0
+  field IntPtr NativeMethodInfoPtr_Release_Private_Void_Int32_0
+  field IntPtr NativeMethodInfoPtr_FixedUpdate_Public_Virtual_Final_New_Void_0
+  field IntPtr NativeMethodInfoPtr_DestroyAll_Public_Virtual_Final_New_Void_0
+  field IntPtr NativeMethodInfoPtr_GetFreeProjectileIndex_Private_Int32_0
+  field IntPtr NativeMethodInfoPtr_TryGetProjectileProjectileInfo_Public_Virtual_Final_New_Boolean_Int32_byref_ProjectileInstanceInfo_0
+  field IntPtr NativeMethodInfoPtr_Sprocket_DamageModelling_IProjectileFactory_Launch_Private_Virtual_Final_New_Void_Object_byref_ProjectileLaunchState_byref_ProjectileLauncherInfo_ProjectileTypeID_byref_ProjectileFireInfo_0
+dotnet : Unhandled exception. System.TypeLoadException: Could not load type 
+'Il2CppSprocket.DamageModelling.ProjectileLaunchState' from assembly 'Sprocket.Projectiles, Version=0.0.0.0, 
+Culture=neutral, PublicKeyToken=null' due to value type mismatch.
+At line:1 char:505
++ ... e-reg.txt'; dotnet $exe 'D:\SteamLibrary\steamapps\common\Sprocket\Be ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Unhandled excep... type mismatch.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   at System.Signature.GetSignature(Void* pCorSig, Int32 cCorSig, RuntimeFieldHandleInternal fieldHandle, 
+IRuntimeMethodInfo methodHandle, RuntimeType declaringType)
+   at System.Reflection.RuntimeMethodInfo.<get_Signature>g__LazyCreateSignature|24_0()
+   at System.Reflection.RuntimeMethodInfo.get_ReturnType()
+   at Program.<Main>$(String[] args) in D:\workspace\sporketmod\_probe\dump\Program.cs:line 31
+=== Sprocket.DamageModelling.ArmourPiercingProjectileFunction (base=ProjectileFunction) ===
+  field IntPtr NativeFieldInfoPtr_PenetratorConstant
+  field IntPtr NativeFieldInfoPtr_PenetrationExitReocurringHitAvoidancePad
+  field IntPtr NativeFieldInfoPtr_MicrobumpNormalOffsetCoefficient
+  field IntPtr NativeFieldInfoPtr_MicrobumpNormalZOffset
+  field IntPtr NativeFieldInfoPtr_MicrobumpFrequency
+  field IntPtr NativeFieldInfoPtr_MicrobumpTerrainHardness
+  field IntPtr NativeFieldInfoPtr_MinProjectileVelocity
+  field IntPtr NativeFieldInfoPtr_MaxNormilizationAngle
+  field IntPtr NativeMethodInfoPtr_HitDamageModel_Public_Virtual_DamageModelHitResult_byref_ProjectileInstance_byref_ProjectileDamageModelHit_0
+  field IntPtr NativeMethodInfoPtr_HitPhysicsObject_Public_Virtual_PhysicsObjectHitResult_byref_ProjectileInstance_byref_RaycastHit_0
+  field IntPtr NativeMethodInfoPtr__ctor_Public_Void_0
+  prop  UInt16 PenetratorConstant
+  prop  Single PenetrationExitReocurringHitAvoidancePad
+  prop  Single MicrobumpNormalOffsetCoefficient
+  prop  Int32 MicrobumpNormalZOffset
+  prop  Int32 MicrobumpFrequency
+  prop  Single MicrobumpTerrainHardness
+  prop  Int32 MinProjectileVelocity
+  prop  Single MaxNormilizationAngle
+  meth  DamageModelHitResult HitDamageModel(ProjectileInstance& projectile, ProjectileDamageModelHit& hit)
+  meth  PhysicsObjectHitResult HitPhysicsObject(ProjectileInstance& projectile, RaycastHit& hit)
+=== Sprocket.DamageModelling.DetonationPropellantProjectileFunction (base=ProjectileFunction) ===
+  field IntPtr NativeFieldInfoPtr_PropellantLength
+  field IntPtr NativeMethodInfoPtr_get_Flags_Public_Virtual_get_FunctionFlags_0
+  field IntPtr NativeMethodInfoPtr_AggregateLaunchInfo_Public_Virtual_Void_byref_ProjectileLaunchState_byref_ProjectileLauncherInfo_byref_ProjectileInstance_0
+  field IntPtr NativeMethodInfoPtr_GetFireDirection_Private_Static_Vector3_Quaternion_Single_0
+  field IntPtr NativeMethodInfoPtr_GetRandomAccuracyOffset_Private_Static_Single_Single_0
+  field IntPtr NativeMethodInfoPtr__ctor_Public_Void_0
+  prop  Single PropellantLength
+  prop  FunctionFlags Flags
+  meth  Void AggregateLaunchInfo(ProjectileLaunchState& launchState, ProjectileLauncherInfo& launcherInfo, ProjectileInstance& projectile)
+  meth  Vector3 GetFireDirection(Quaternion orientation, Single maxInaccuracyOffset)
+  meth  Single GetRandomAccuracyOffset(Single maxInaccuracyOffset)
+=== Sprocket.DamageModelling.ExplosiveProjectileFunction (base=ProjectileFunction) ===
+  field IntPtr NativeFieldInfoPtr_DamageThreshold
+  field IntPtr NativeFieldInfoPtr_delay
+  field IntPtr NativeFieldInfoPtr_explosivePower
+  field IntPtr NativeMethodInfoPtr_HitDamageModel_Public_Virtual_DamageModelHitResult_byref_ProjectileInstance_byref_ProjectileDamageModelHit_0
+  field IntPtr NativeMethodInfoPtr_HitPhysicsObject_Public_Virtual_PhysicsObjectHitResult_byref_ProjectileInstance_byref_RaycastHit_0
+  field IntPtr NativeMethodInfoPtr_Detonate_Private_Void_byref_ProjectileInstance_Vector3_Vector3_0
+  field IntPtr NativeMethodInfoPtr__ctor_Public_Void_0
+  prop  Byte DamageThreshold
+  prop  Single delay
+  prop  Single explosivePower
+  meth  DamageModelHitResult HitDamageModel(ProjectileInstance& projectile, ProjectileDamageModelHit& hit)
+  meth  PhysicsObjectHitResult HitPhysicsObject(ProjectileInstance& projectile, RaycastHit& hit)
+  meth  Void Detonate(ProjectileInstance& projectile, Vector3 collisionPoint, Vector3 collisionNormal)
+=== Sprocket.DamageModelling.ShrapnelProjectileFunction (base=ProjectileFunction) ===
+  field IntPtr NativeFieldInfoPtr_anisotropy
+  field IntPtr NativeFieldInfoPtr_ejectionSpeed
+  field IntPtr NativeFieldInfoPtr_fragmentCount
+  field IntPtr NativeFieldInfoPtr_shrapnelProjectileID
+  field IntPtr NativeMethodInfoPtr_HitDamageModel_Public_Virtual_DamageModelHitResult_byref_ProjectileInstance_byref_ProjectileDamageModelHit_0
+  field IntPtr NativeMethodInfoPtr_HitPhysicsObject_Public_Virtual_PhysicsObjectHitResult_byref_ProjectileInstance_byref_RaycastHit_0
+  field IntPtr NativeMethodInfoPtr__ctor_Public_Void_0
+  prop  Single anisotropy
+  prop  Single ejectionSpeed
+  prop  Int32 fragmentCount
+  prop  ProjectileTypeID shrapnelProjectileID
+  meth  DamageModelHitResult HitDamageModel(ProjectileInstance& projectile, ProjectileDamageModelHit& hit)
+  meth  PhysicsObjectHitResult HitPhysicsObject(ProjectileInstance& projectile, RaycastHit& hit)
+=== Sprocket.DamageModelling.ProjectileFunction (base=Object) ===
+  field IntPtr NativeFieldInfoPtr_context
+  field IntPtr NativeFieldInfoPtr_playGroundImpactEffect
+  field IntPtr NativeFieldInfoPtr_groundImpactEffectPriority
+  field IntPtr NativeMethodInfoPtr_get_Flags_Public_Virtual_New_get_FunctionFlags_0
+  field IntPtr NativeMethodInfoPtr_AggregateLaunchInfo_Public_Virtual_New_Void_byref_ProjectileLaunchState_byref_ProjectileLauncherInfo_byref_ProjectileInstance_0
+  field IntPtr NativeMethodInfoPtr_ProjectileUpdate_Public_Virtual_New_Void_byref_ProjectileInstance_0
+  field IntPtr NativeMethodInfoPtr_HitDamageModel_Public_Virtual_New_DamageModelHitResult_byref_ProjectileInstance_byref_ProjectileDamageModelHit_0
+  field IntPtr NativeMethodInfoPtr_HitPhysicsObject_Public_Virtual_New_PhysicsObjectHitResult_byref_ProjectileInstance_byref_RaycastHit_0
+  field IntPtr NativeMethodInfoPtr_NewEffect_Public_Void_byref_ProjectileEffectInfo_0
+  field IntPtr NativeMethodInfoPtr_ExtractPenetrationEffectTypeFromFlags_Public_Static_ProjectileEffectType_PenetrationFragmentFlag_0
+  field IntPtr NativeMethodInfoPtr__ctor_Protected_Void_0
+  prop  ProjectileFunctionContext context
+  prop  Boolean playGroundImpactEffect
+  prop  Byte groundImpactEffectPriority
+  prop  FunctionFlags Flags
+  meth  Void AggregateLaunchInfo(ProjectileLaunchState& launchState, ProjectileLauncherInfo& launcherInfo, ProjectileInstance& projectile)
+  meth  Void ProjectileUpdate(ProjectileInstance& projectile)
+  meth  DamageModelHitResult HitDamageModel(ProjectileInstance& projectile, ProjectileDamageModelHit& hit)
+  meth  PhysicsObjectHitResult HitPhysicsObject(ProjectileInstance& projectile, RaycastHit& hit)
+  meth  Void NewEffect(ProjectileEffectInfo& info)
+  meth  ProjectileEffectType ExtractPenetrationEffectTypeFromFlags(PenetrationFragmentFlag flags)
+=== Sprocket.DamageModelling.ProjectileFunctionRegister (base=Object) ===
+  field IntPtr NativeFieldInfoPtr_factories
+  field IntPtr NativeMethodInfoPtr_Register_Private_Static_Void_0
+  field IntPtr NativeMethodInfoPtr_GetProjectileFunctionDefinitionType_Public_Static_Type_String_0
+  field IntPtr NativeMethodInfoPtr_Register_Public_Static_Void_String_IProjectileFunctionFactory_0
+  field IntPtr NativeMethodInfoPtr_GetFunctions_Public_Static_Il2CppReferenceArray_1_ProjectileFunction_IReadOnlyList_1_ProjectileFunctionDefinition_0
+  prop  Dictionary`2 factories
+  meth  Void Register()
+  meth  Type GetProjectileFunctionDefinitionType(String identifier)
+  meth  Void Register(String identifier, IProjectileFunctionFactory factory)
+  meth  Il2CppReferenceArray`1 GetFunctions(IReadOnlyList`1 functionDefinitions)
+=== Sprocket.DamageModelling.IProjectileFunctionFactory (base=Il2CppObjectBase) ===
+  field IntPtr NativeMethodInfoPtr_get_FunctionDefinitionType_Public_Abstract_Virtual_New_get_Type_0
+  field IntPtr NativeMethodInfoPtr_Create_Public_Abstract_Virtual_New_ProjectileFunction_ProjectileFunctionDefinition_0
+  prop  Type FunctionDefinitionType
+  meth  ProjectileFunction Create(ProjectileFunctionDefinition definition)
+=== Sprocket.DamageModelling.ArmourPiercingProjectileFunctionFactory (base=Object) ===
+  field IntPtr NativeMethodInfoPtr_get_FunctionDefinitionType_Public_Virtual_Final_New_get_Type_0
+  field IntPtr NativeMethodInfoPtr_Create_Public_Virtual_Final_New_ProjectileFunction_ProjectileFunctionDefinition_0
+  field IntPtr NativeMethodInfoPtr__ctor_Public_Void_0
+  prop  Type FunctionDefinitionType
+  meth  ProjectileFunction Create(ProjectileFunctionDefinition definition)
+=== Sprocket.DamageModelling.HighExplosiveProjectileFunctionFactory (base=Object) ===
+  field IntPtr NativeMethodInfoPtr_get_FunctionDefinitionType_Public_Virtual_Final_New_get_Type_0
+  field IntPtr NativeMethodInfoPtr_Create_Public_Virtual_Final_New_ProjectileFunction_ProjectileFunctionDefinition_0
+  field IntPtr NativeMethodInfoPtr__ctor_Public_Void_0
+  prop  Type FunctionDefinitionType
+  meth  ProjectileFunction Create(ProjectileFunctionDefinition definition)
+=== Sprocket.DamageModelling.ShrapnelProjectileFunctionFactory (base=Object) ===
+  field IntPtr NativeMethodInfoPtr_get_FunctionDefinitionType_Public_Virtual_Final_New_get_Type_0
+  field IntPtr NativeMethodInfoPtr_Create_Public_Virtual_Final_New_ProjectileFunction_ProjectileFunctionDefinition_0
+  field IntPtr NativeMethodInfoPtr__ctor_Public_Void_0
+  prop  Type FunctionDefinitionType
+  meth  ProjectileFunction Create(ProjectileFunctionDefinition definition)
+=== Sprocket.DamageModelling.PropellantProjectileFunctionFactory (base=Object) ===
+  field IntPtr NativeMethodInfoPtr_get_FunctionDefinitionType_Public_Virtual_Final_New_get_Type_0
+  field IntPtr NativeMethodInfoPtr_Create_Public_Virtual_Final_New_ProjectileFunction_ProjectileFunctionDefinition_0
+  field IntPtr NativeMethodInfoPtr__ctor_Public_Void_0
+  prop  Type FunctionDefinitionType
+  meth  ProjectileFunction Create(ProjectileFunctionDefinition definition)
+=== Il2CppSprocket.DamageModelling.ArmourPiercingProjectileFunction (base=ProjectileFunction) ===
+  field IntPtr NativeFieldInfoPtr_PenetratorConstant
+  field IntPtr NativeFieldInfoPtr_PenetrationExitReocurringHitAvoidancePad
+  field IntPtr NativeFieldInfoPtr_MicrobumpNormalOffsetCoefficient
+  field IntPtr NativeFieldInfoPtr_MicrobumpNormalZOffset
+  field IntPtr NativeFieldInfoPtr_MicrobumpFrequency
+  field IntPtr NativeFieldInfoPtr_MicrobumpTerrainHardness
+  field IntPtr NativeFieldInfoPtr_MinProjectileVelocity
+  field IntPtr NativeFieldInfoPtr_MaxNormilizationAngle
+  field IntPtr NativeMethodInfoPtr_HitDamageModel_Public_Virtual_DamageModelHitResult_byref_ProjectileInstance_byref_ProjectileDamageModelHit_0
+  field IntPtr NativeMethodInfoPtr_HitPhysicsObject_Public_Virtual_PhysicsObjectHitResult_byref_ProjectileInstance_byref_RaycastHit_0
+  field IntPtr NativeMethodInfoPtr__ctor_Public_Void_0
+  meth  DamageModelHitResult HitDamageModel(ProjectileInstance& projectile, ProjectileDamageModelHit& hit)
+  meth  PhysicsObjectHitResult HitPhysicsObject(ProjectileInstance& projectile, RaycastHit& hit)
+=== Il2CppSprocket.DamageModelling.ProjectileFunction (base=Object) ===
+  field IntPtr NativeFieldInfoPtr_context
+  field IntPtr NativeFieldInfoPtr_playGroundImpactEffect
+  field IntPtr NativeFieldInfoPtr_groundImpactEffectPriority
+  field IntPtr NativeMethodInfoPtr_get_Flags_Public_Virtual_New_get_FunctionFlags_0
+  field IntPtr NativeMethodInfoPtr_AggregateLaunchInfo_Public_Virtual_New_Void_byref_ProjectileLaunchState_byref_ProjectileLauncherInfo_byref_ProjectileInstance_0
+  field IntPtr NativeMethodInfoPtr_ProjectileUpdate_Public_Virtual_New_Void_byref_ProjectileInstance_0
+  field IntPtr NativeMethodInfoPtr_HitDamageModel_Public_Virtual_New_DamageModelHitResult_byref_ProjectileInstance_byref_ProjectileDamageModelHit_0
+  field IntPtr NativeMethodInfoPtr_HitPhysicsObject_Public_Virtual_New_PhysicsObjectHitResult_byref_ProjectileInstance_byref_RaycastHit_0
+  field IntPtr NativeMethodInfoPtr_NewEffect_Public_Void_byref_ProjectileEffectInfo_0
+  field IntPtr NativeMethodInfoPtr_ExtractPenetrationEffectTypeFromFlags_Public_Static_ProjectileEffectType_PenetrationFragmentFlag_0
+  field IntPtr NativeMethodInfoPtr__ctor_Protected_Void_0
+dotnet : Unhandled exception. System.TypeLoadException: Could not load type 
+'Il2CppSprocket.DamageModelling.ProjectileLaunchState' from assembly 'Sprocket.Projectiles, Version=0.0.0.0, 
+Culture=neutral, PublicKeyToken=null' due to value type mismatch.
+At line:1 char:636
++ ...  $out 2>&1; dotnet $exe 'D:\SteamLibrary\steamapps\common\Sprocket\Be ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Unhandled excep... type mismatch.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   at System.Signature.GetSignature(Void* pCorSig, Int32 cCorSig, RuntimeFieldHandleInternal fieldHandle, 
+IRuntimeMethodInfo methodHandle, RuntimeType declaringType)
+   at System.Reflection.RuntimeMethodInfo.<get_Signature>g__LazyCreateSignature|24_0()
+   at System.Reflection.RuntimeMethodInfo.get_ReturnType()
+   at Program.<Main>$(String[] args) in D:\workspace\sporketmod\_probe\dump\Program.cs:line 31

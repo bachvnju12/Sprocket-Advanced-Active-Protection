@@ -1,0 +1,62 @@
+﻿{
+    "v":  "0.2",
+    "guid":  "a91bb31a-2cf1-4d0a-8e31-000000000008",
+    "name":  "saaps_ironfist",
+    "tags":  [
+                 "cannon",
+                 "scope",
+                 "saapsPart",
+                 "aps_ironfist"
+             ],
+    "date":  "1945.09.03",
+    "order":  0,
+    "transform":  {
+                      "mirroring":  true,
+                      "duplication":  true,
+                      "pickup":  true,
+                      "snapToCentre":  true,
+                      "autoRotate":  false,
+                      "airPlacement":  true,
+                      "translation":  true,
+                      "rotation":  true,
+                      "scaling":  true,
+                      "dynamic":  true,
+                      "placementMode":  "upFaceNormal",
+                      "scale":  [
+                                    1,
+                                    1,
+                                    1
+                                ],
+                      "maxScale":  [
+                                       3,
+                                       3,
+                                       3
+                                   ],
+                      "minScale":  [
+                                       0.25,
+                                       0.25,
+                                       0.25
+                                   ],
+                      "objects":  [
+
+                                  ]
+                  },
+    "components":  [
+                       {
+                           "fileID":  "saaps_ironfist",
+                           "type":  "model",
+                           "info":  {
+                                        "v":  "0.2",
+                                        "meshGuid":  "691897f033278e64d8640a39162942bb",
+                                        "materialGuids":  [
+                                                              "1b2eef9bd544f7442bf5a584bfd323b2"
+                                                          ],
+                                        "scaling":  true,
+                                        "flipping":  true,
+                                        "selectable":  true,
+                                        "placementSurface":  false,
+                                        "damageable":  false
+                                    }
+                       }
+                   ]
+}

@@ -1,0 +1,14 @@
+[2026-10-10 11:52:51.156] [00004208] === Logging started ===
+[2026-10-10 11:52:52.751] [00004208] Executing: "C:\Program Files\dotnet\dotnet.exe" build src\SAAPS\SAAPS.csproj -c Release --no-restore -p:SkipModDeploy=true -v minimal, PID: 16904, PPID: 7192
+[2026-10-10 11:52:52.759] [00004208] IsElevated: False
+[2026-10-10 11:52:52.759] [00004208] Is64BitProcess: True
+[2026-10-10 11:52:52.759] [00004208] RebootPending: False
+[2026-10-10 11:52:52.759] [00004208] ProcessorArchitecture: amd64
+[2026-10-10 11:52:52.759] [00004208] HostArchitecture: x64
+[2026-10-10 11:52:52.759] [00004208] SdkDirectory: 6.0.428
+[2026-10-10 11:52:52.759] [00004208] VerifySignatures: False
+[2026-10-10 11:52:52.759] [00004208] SDK feature band: 6.0.400
+[2026-10-10 11:53:11.873] [00004208] Shutting down
+[2026-10-10 11:53:11.873] [00004208] Shutdown completed.
+[2026-10-10 11:53:11.873] [00004208] Restart required: False
+[2026-10-10 11:53:11.874] [00004208] === Logging ended ===

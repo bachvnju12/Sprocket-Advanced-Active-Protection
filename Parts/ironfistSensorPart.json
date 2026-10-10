@@ -1,0 +1,72 @@
+﻿{
+  "v": "0.2",
+  "guid": "a1b2c3d4-0008-4003-8003-000000000008",
+  "name": "Iron Fist Sensor",
+  "tags": [
+    "decoration",
+    "crewEquipment",
+    "external",
+    "aps",
+    "apsSensor",
+    "hardkill",
+    "turret",
+    "israel"
+  ],
+  "components": [
+    {
+      "fileID": "ironfistsensor",
+      "type": "electronics",
+      "info": {
+        "v": "0.0",
+        "modelFileID": "model"
+      }
+    },
+    {
+      "fileID": "model",
+      "type": "model",
+      "info": {
+        "v": "0.2",
+        "meshGuid": "170d193e9b291654aa761b78f899ec79",
+        "materialGuids": [
+          "c3d6672cf9bc2bc449be21d33d9ca58f"
+        ],
+        "scaling": true,
+        "flipping": true,
+        "selectable": true,
+        "placementSurface": true,
+        "damageable": true
+      }
+    }
+  ],
+  "transform": {
+    "mirroring": true,
+    "duplication": true,
+    "pickup": true,
+    "snapToCentre": true,
+    "autoRotate": true,
+    "airPlacement": true,
+    "translation": true,
+    "rotation": true,
+    "scaling": true,
+    "dynamic": true,
+    "placementMode": "forwards",
+    "scale": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "maxScale": [
+      2.0,
+      2.0,
+      2.0
+    ],
+    "minScale": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "objects": []
+  },
+  "date": "2010.01.01",
+  "order": 83
+}

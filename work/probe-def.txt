@@ -1,0 +1,105 @@
+﻿=== Sprocket.DamageModelling.ProjectileDefinition (base=Object) ===
+  field IntPtr NativeFieldInfoPtr_AirDensity
+  field IntPtr NativeFieldInfoPtr_OgiveCalibers
+  field IntPtr NativeFieldInfoPtr_ShellDragCoefficientCurve
+  field IntPtr NativeFieldInfoPtr_ShellMachNumberDragCoefficientCurve
+  field IntPtr NativeFieldInfoPtr_UserCount
+  field IntPtr NativeFieldInfoPtr_ID
+  field IntPtr NativeFieldInfoPtr_Name
+  field IntPtr NativeFieldInfoPtr_Guid
+  field IntPtr NativeFieldInfoPtr_Mass
+  field IntPtr NativeFieldInfoPtr_Diameter
+  field IntPtr NativeFieldInfoPtr_Length
+  field IntPtr NativeFieldInfoPtr_MinSpeed
+  field IntPtr NativeFieldInfoPtr_Lifetime
+  field IntPtr NativeFieldInfoPtr_dragConstant
+  field IntPtr NativeFieldInfoPtr_Functions
+  field IntPtr NativeFieldInfoPtr_LaunchFunctions
+  field IntPtr NativeMethodInfoPtr__ctor_Public_Void_String_ProjectileTypeID_Guid_Single_Single_Single_Single_Single_Il2CppReferenceArray_1_ProjectileFunction_Il2CppReferenceArray_1_ProjectileFunction_0
+  field IntPtr NativeMethodInfoPtr_get_BallisticCoefficient_Public_get_Single_0
+  field IntPtr NativeMethodInfoPtr_Sprocket_DamageModelling_IProjectileType_get_Name_Private_Virtual_Final_New_get_String_0
+  field IntPtr NativeMethodInfoPtr_Sprocket_DamageModelling_IProjectileType_get_Guid_Private_Virtual_Final_New_get_Guid_0
+  field IntPtr NativeMethodInfoPtr_Sprocket_DamageModelling_IProjectileType_get_ID_Private_Virtual_Final_New_get_ProjectileTypeID_0
+  field IntPtr NativeMethodInfoPtr_CalculateDragForce_Public_Single_Single_0
+  prop  Single AirDensity
+  prop  Single OgiveCalibers
+  prop  AnimationCurve ShellDragCoefficientCurve
+  prop  AnimationCurve ShellMachNumberDragCoefficientCurve
+  prop  Int32 UserCount
+  prop  ProjectileTypeID ID
+  prop  String Name
+  prop  Guid Guid
+  prop  Single Mass
+  prop  Single Diameter
+  prop  Single Length
+  prop  Single MinSpeed
+  prop  Single Lifetime
+  prop  Single dragConstant
+  prop  Il2CppReferenceArray`1 Functions
+  prop  Il2CppReferenceArray`1 LaunchFunctions
+  prop  Single BallisticCoefficient
+  prop  String Sprocket.DamageModelling.IProjectileType.Name
+  prop  Guid Sprocket.DamageModelling.IProjectileType.Guid
+  prop  ProjectileTypeID Sprocket.DamageModelling.IProjectileType.ID
+  meth  Single CalculateDragForce(Single speed)
+=== Sprocket.DamageModelling.IProjectileDefinitionSource (base=Il2CppObjectBase) ===
+  field IntPtr NativeMethodInfoPtr_GetProjectileDefinition_Public_Abstract_Virtual_New_ProjectileDefinition_ProjectileTypeID_0
+  meth  ProjectileDefinition GetProjectileDefinition(ProjectileTypeID id)
+=== Il2CppSprocket.DamageModelling.ProjectileDefinition (base=Object) ===
+  field IntPtr NativeFieldInfoPtr_AirDensity
+  field IntPtr NativeFieldInfoPtr_OgiveCalibers
+  field IntPtr NativeFieldInfoPtr_ShellDragCoefficientCurve
+  field IntPtr NativeFieldInfoPtr_ShellMachNumberDragCoefficientCurve
+  field IntPtr NativeFieldInfoPtr_UserCount
+  field IntPtr NativeFieldInfoPtr_ID
+  field IntPtr NativeFieldInfoPtr_Name
+  field IntPtr NativeFieldInfoPtr_Guid
+  field IntPtr NativeFieldInfoPtr_Mass
+  field IntPtr NativeFieldInfoPtr_Diameter
+  field IntPtr NativeFieldInfoPtr_Length
+  field IntPtr NativeFieldInfoPtr_MinSpeed
+  field IntPtr NativeFieldInfoPtr_Lifetime
+  field IntPtr NativeFieldInfoPtr_dragConstant
+  field IntPtr NativeFieldInfoPtr_Functions
+  field IntPtr NativeFieldInfoPtr_LaunchFunctions
+  field IntPtr NativeMethodInfoPtr__ctor_Public_Void_String_ProjectileTypeID_Guid_Single_Single_Single_Single_Single_Il2CppReferenceArray_1_ProjectileFunction_Il2CppReferenceArray_1_ProjectileFunction_0
+  field IntPtr NativeMethodInfoPtr_get_BallisticCoefficient_Public_get_Single_0
+  field IntPtr NativeMethodInfoPtr_Sprocket_DamageModelling_IProjectileType_get_Name_Private_Virtual_Final_New_get_String_0
+  field IntPtr NativeMethodInfoPtr_Sprocket_DamageModelling_IProjectileType_get_Guid_Private_Virtual_Final_New_get_Guid_0
+  field IntPtr NativeMethodInfoPtr_Sprocket_DamageModelling_IProjectileType_get_ID_Private_Virtual_Final_New_get_ProjectileTypeID_0
+  field IntPtr NativeMethodInfoPtr_CalculateDragForce_Public_Single_Single_0
+  meth  Single CalculateDragForce(Single speed)
+=== Il2CppSprocket.DamageModelling.IProjectileDefinitionSource (base=Il2CppObjectBase) ===
+  field IntPtr NativeMethodInfoPtr_GetProjectileDefinition_Public_Abstract_Virtual_New_ProjectileDefinition_ProjectileTypeID_0
+dotnet : Unhandled exception. System.TypeLoadException: Could not find or load a type. (0x80131522)
+At line:1 char:505
++ ... e-def.txt'; dotnet $exe 'D:\SteamLibrary\steamapps\common\Sprocket\Be ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Unhandled excep...e. (0x80131522):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   at System.Signature.GetSignature(Void* pCorSig, Int32 cCorSig, RuntimeFieldHandleInternal fieldHandle, 
+IRuntimeMethodInfo methodHandle, RuntimeType declaringType)
+   at System.Reflection.RuntimeMethodInfo.<get_Signature>g__LazyCreateSignature|24_0()
+   at System.Reflection.RuntimeMethodInfo.get_ReturnType()
+   at Program.<Main>$(String[] args) in D:\workspace\sporketmod\_probe\dump\Program.cs:line 31
+=== Sprocket.DamageModelling.FunctionFlags (base=Enum) ===
+  field Int32 value__
+  field FunctionFlags LaunchStage
+=== Sprocket.DamageModelling.ProjectileFlags (base=Enum) ===
+  field Byte value__
+  field ProjectileFlags None
+  field ProjectileFlags Active
+  field ProjectileFlags Release
+  field ProjectileFlags TerminatedByTerrain
+  field ProjectileFlags TerminatedByStructure
+=== Il2CppSprocket.DamageModelling.FunctionFlags (base=Enum) ===
+  field Int32 value__
+  field FunctionFlags LaunchStage
+=== Il2CppSprocket.DamageModelling.ProjectileFlags (base=Enum) ===
+  field Byte value__
+  field ProjectileFlags None
+  field ProjectileFlags Active
+  field ProjectileFlags Release
+  field ProjectileFlags TerminatedByTerrain
+  field ProjectileFlags TerminatedByStructure

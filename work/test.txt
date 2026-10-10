@@ -1,0 +1,2 @@
+﻿PASS: production speed, trajectory, reaction, readiness, jamming, deflection and native slot-liveness rules (offline, no native projectile release).
+PASS: production registry resolves 10 generated model IDs and rejects vanilla/unknown IDs. Native placement still needs live game verification.
