@@ -155,7 +155,7 @@ namespace SprocketAdvancedAPS.Parts
                         {
                             // Native material load owns this per-vehicle wrapper and its painter registration.
                             // Never replace it with a globally shared HDRP material: that loses vehicle camo.
-                            paint.Flags = VehicleMaterialFlags.None;
+                            paint.Flags &= ~VehicleMaterialFlags.Unpainted;
                             paint.PaintSlot = VehicleMaterialSlot.Exterior;
                             native.SetMaterials(new Il2CppReferenceArray<VehicleMaterial>(new[] { paint, surfaces[0], surfaces[1] }));
                             component.Vehicle.Materials.Link(paint, component.VehicleTransform);

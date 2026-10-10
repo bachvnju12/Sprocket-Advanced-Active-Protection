@@ -121,8 +121,8 @@ namespace SprocketAdvancedAPS.Systems
             _log = log;
         }
 
-        private sealed record Tracer(Sprocket.DamageModelling.IProjectileEngineObjectFactory Factory,
-            Transform Transform, Vector3 From, Vector3 To, float Born, float Duration);
+        private sealed record Tracer(Sprocket.DamageModelling.OnDemandProjectileEngineObjectFactory Factory,
+            Transform Transform, Sprocket.Vehicles.Vehicle Vehicle, Vector3 From, Vector3 To, float Born, float Duration);
         private readonly List<Tracer> _tracers = new();
         private Sprocket.DamageModelling.ProjectileDefinition? _tracerDefinition;
         private bool _trailWarning;
@@ -133,7 +133,7 @@ namespace SprocketAdvancedAPS.Systems
         {
             if (_disposed || _tracerFailed || _tracers.Count >= 64) return;
             Transform? visual = null;
-            Sprocket.DamageModelling.IProjectileEngineObjectFactory? factory = null;
+            Sprocket.DamageModelling.OnDemandProjectileEngineObjectFactory? factory = null;
             try
             {
                 var prototype = UnityEngine.Object.FindObjectOfType<Sprocket.DamageModelling.ProjectilesMain>()?.ProjectilePrototype;
@@ -158,7 +158,7 @@ namespace SprocketAdvancedAPS.Systems
                 visual.position = from;
                 if (direction.sqrMagnitude > 1e-6f) visual.rotation = Quaternion.LookRotation(direction);
                 foreach (var trail in visual.GetComponentsInChildren<TrailRenderer>(true)) trail.Clear();
-                _tracers.Add(new Tracer(factory, visual, from, threat.Position, Time.time,
+                _tracers.Add(new Tracer(factory, visual, module.Vehicle, from, threat.Position, Time.time,
                     Mathf.Clamp(direction.magnitude / 1000f, .025f, .08f)));
             }
             catch (Exception ex)
@@ -171,7 +171,7 @@ namespace SprocketAdvancedAPS.Systems
             }
         }
 
-        private void ReleaseTracer(Sprocket.DamageModelling.IProjectileEngineObjectFactory factory, Transform visual)
+        private void ReleaseTracer(Sprocket.DamageModelling.OnDemandProjectileEngineObjectFactory factory, Transform visual)
         {
             try { factory.Release(visual); }
             catch (Exception ex)
@@ -192,7 +192,7 @@ namespace SprocketAdvancedAPS.Systems
                 float age = Time.time - tracer.Born;
                 try
                 {
-                    if (tracer.Transform == null || age >= tracer.Duration + .05f)
+                    if (tracer.Transform == null || tracer.Vehicle == null || tracer.Vehicle.Released || age >= tracer.Duration + .05f)
                     {
                         if (tracer.Transform != null) ReleaseTracer(tracer.Factory, tracer.Transform);
                         _tracers.RemoveAt(i);

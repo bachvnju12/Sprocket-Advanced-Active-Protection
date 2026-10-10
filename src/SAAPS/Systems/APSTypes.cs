@@ -332,6 +332,8 @@ namespace SprocketAdvancedAPS.Systems
         {
             var localPoint = Module.Transform.InverseTransformDirection(worldPoint - Module.Transform.position);
             if (!float.IsFinite(localPoint.x) || !float.IsFinite(localPoint.y) || !float.IsFinite(localPoint.z)) return false;
+            if (CenterDirection == Vector3.forward)
+                return APSInterceptRules.InCone(localPoint.x, localPoint.y, localPoint.z, HorizontalFOV, VerticalFOV);
 
             // Check horizontal angle
             var horizontalDir = new Vector3(localPoint.x, 0, localPoint.z).normalized;

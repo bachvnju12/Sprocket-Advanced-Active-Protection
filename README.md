@@ -26,9 +26,8 @@ Sprocket Advanced APS adds a complete Active Protection System simulation to Spr
 - **Hard-kill interception** physically removes intercepted projectiles from the native register so collision and damage stay consistent.
 - **Soft-kill jamming** disrupts guided missile guidance with time-varying noise proportional to guidance type.
 - **Per-module state**: health, operational status, countermeasure capacity, cooldown, destroyed state.
-- **Vehicle Designer integration**: APS parts appear in the editor with mass, cost, and an inspector showing coverage, threats, and status.
-- **Coverage visualization** (F7) showing detection/engagement sectors and blind spots.
-- **Runtime HUD** showing APS ONLINE/OFFLINE, countermeasure remaining, and threat tracking.
+- **Vehicle Designer integration**: persistent APS model parts appear in the editor.
+- **HUD / F7 / inspector**: UI stubs, not implemented in this build. Coverage gates run in gameplay; debug logs report engagement decisions.
 - **Save/Load**: APS configuration persists with the vehicle blueprint.
 - **Balance modes**: Realism, Balanced, Sandbox.
 - **JSON-driven profiles**: add custom APS presets without recompiling.
@@ -63,8 +62,8 @@ See **INSTALL.txt** for the full layout.
 ## Usage
 
 - In the Vehicle Designer, add APS radar, launcher, and sensor parts to your turret.
-- Press **F7** to toggle coverage visualization.
-- In battle, the HUD shows APS status in the top-left corner.
+- Orient soft-kill emitters with their local **+Z** axis toward the protected arc; each emitter covers **30° horizontal × 20° vertical**.
+- HUD/F7 coverage rendering is not implemented; use debug logs for runtime decisions.
 - APS activates automatically when a qualifying threat enters the engagement envelope.
 
 ## Configuration
@@ -103,7 +102,7 @@ SAAPS is designed to coexist with the reference mod ecosystem. Optional integrat
 
 ## Interception visual
 
-A confirmed kill plays the game's own projectile explosion effect at the intercept point, requested through the register's native `ShellImpactMarkEffectFactory` (`ProjectileEffectType.Explosion`, no added blast damage or spall), matching how Shell Selector shows APHE detonations. It is requested only after `ProjectileRegister.Release` is verified, so a miss, a rejected shot or a failed release shows no explosion, and a failing effect never changes the intercept result. Line trails use one cached material per colour instead of a new material per shot.
+A confirmed kill plays the game's own projectile explosion effect at the intercept point, requested through the register's native `ShellImpactMarkEffectFactory` (`ProjectileEffectType.Explosion`, no added blast damage or spall), matching how Shell Selector shows APHE detonations. It is requested only after `ProjectileRegister.Release` is verified, so a miss, a rejected shot or a failed release shows no explosion, and a failing effect never changes the intercept result. Hard-kill no longer draws a yellow line. A private native `OnDemandProjectileEngineObjectFactory` uses the game's shell visual prototype to animate a short-lived interceptor (25–80 ms travel, 50 ms tail allowance), without calling `Launch` or creating a native projectile/register entry. Instances are returned through that private factory; errors disable further tracer creation without blocking interception. Prototypes with colliders or rigidbodies are rejected. Native factory signatures are verified offline; actual APFSDS-style appearance and prototype behavior still require live validation. No incoming projectile visual or shared pool is modified.
 
 Native explosion scale follows the `Calibre` field, so the burst is requested as a 40 mm interceptor detonation rather than the incoming round's own calibre.
 
@@ -111,7 +110,9 @@ Native explosion scale follows the `Calibre` field, so the burst is requested as
 
 Soft-kill and hybrid systems (Shtora-1, Afganit) jam guided rounds; pure hard-kill systems do not jam. The native projectile instance carries no guidance state — only position, velocity and flags — so jamming is modelled the way real soft-kill behaves: while the jam holds, the round is walked off its aim line until SACLOS/MCLOS loses the lock, at constant speed, and the round remains a real projectile that will miss. Jamming never steers a round back toward the vehicle, and never changes its speed.
 
-A jam consumes one countermeasure and is dispatched by the planner. Shtora-1 has 20 uses with a 2 s refill. Duration scales with the module's reaction time plus 3 s. A hybrid system launches its interceptor first and only jams a round that survives.
+Each emitter's gameplay jam cone is **30° total horizontal (±15°), 20° total vertical (±10°)** about module local +Z. Dispatch and held jam both recheck current live projectile position against that cone and configured min/max engagement range. Held jam ends if the emitter is disabled, inoperable or destroyed, the vehicle is released, the projectile leaves the envelope, or duration expires. Shtora detection stays 360°; detection is not permission to jam. Afganit's hard-kill coverage remains 350°/65°, independent of this jam cone. These are balance defaults, not confirmed hardware specifications.
+
+A jam consumes one countermeasure and is dispatched by the planner. Shtora-1 has 20 uses with a 40 s refill in the compiled definition. Duration remains reaction time plus 3 s; deflection strength and speed preservation are unchanged. Soft-kill has audio only: no purple beam, interceptor tracer or explosion; the incoming round's own tracer remains untouched. Hybrid dispatch still attempts hard-kill first; existing shared cooldown can block the following jam, and this pass does not rebalance that behavior.
 
 ## Performance
 
@@ -125,7 +126,7 @@ A jam consumes one countermeasure and is dispatched by the planner. Shtora-1 has
 ## Known limitations
 
 - Local builds use installed .NET 6 and Sprocket assemblies. Runtime logs confirm native APS model identity, menu grouping, threat detection, and released native projectiles (`INTERCEPT SUCCESS`). The explosion visual, catalog icons and the lag reduction still need live acceptance; offline checks do not prove in-game appearance or frame-time change. See **VERIFICATION.md** for older feature status notes.
-- Models use generated UV-mapped geometry and an original 512×512 surface atlas (`plugins/SprocketAdvancedAPS/textures/saaps_surfaces.png`). Three SAAPS-owned HDRP materials distinguish olive/sand paint, dark metal and sensor faces; no third-party models/textures are redistributed. Larger tubes have smooth normals and housings have stepped edge bevels. Missing textured surfaces warn and retain native materials. Drozd-1, Shtora-1 and Trophy now have draft individual equipment assemblies based on local reference photographs, with front/side/isometric previews in `generated/previews/`. Seven other systems still have approximate placeholder layouts. Mesh validity checks do not prove photographic likeness or in-game appearance. See `work/model-reference-notes.md` for references, modeling estimates and remaining uncertainties. Part IDs and gameplay capacity remain unchanged; a visible equipment assembly is not the entire vehicle-wide APS installation.
+- Models use generated UV-mapped geometry and an original 512×512 surface atlas (`plugins/SprocketAdvancedAPS/textures/saaps_surfaces.png`). The casing keeps the model's native per-vehicle exterior material, linked and processed by that vehicle's painter for paint/camo; two shared SAAPS-owned HDRP detail materials cover metal and sensor faces. Existing saved SAAPS model components request the native exterior material on reload. Paint ownership, repaint, two-vehicle isolation and save/load remain unverified live. No third-party models/textures are redistributed. Larger tubes have smooth normals and housings have stepped edge bevels. Missing textured surfaces warn and retain native materials. All ten meshes now have selective mechanical details and front/side/isometric previews in `generated/previews/`; icons alone remap shading above brightness 150. Drozd-1, Shtora-1 and Trophy remain reference-based drafts. Seven other systems still have approximate placeholder layouts, not photo-matched equipment. Mesh validity checks do not prove photographic likeness or in-game appearance. See `work/model-reference-notes.md` for references, modeling estimates and remaining uncertainties. Part IDs and gameplay capacity remain unchanged; a visible equipment assembly is not the entire vehicle-wide APS installation.
 - Top-attack and UAV/FPV interception depend on those objects existing in the scene as projectiles.
 
 ## License

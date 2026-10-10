@@ -269,7 +269,7 @@ function New-SystemMesh($Shape) {
             Add-ChamferBox $vertices $faces 0 0.10 -0.09 0.20 0.09 0.18 0.015
             Add-ChamferBox $vertices $faces 0 0.114 0.091 0.158 0.063 0.006 0.009 2
             foreach ($x in -0.072, 0.072) {
-                Add-Box $vertices $faces $x 0.1 -0.008 0.016 0.09 0.19 1
+                Add-Box $vertices $faces $x 0.1 -0.008 0.016 0.08 0.19 1
                 Add-Tube $vertices $faces $x 0.184 0.016 0.01 0.009 6 0 0 0 1
             }
             Add-Drum $vertices $faces 0 0.19 0 0.09 0.05 8
@@ -288,7 +288,7 @@ function New-SystemMesh($Shape) {
             Add-Drum $vertices $faces 0 0.17 0.02 0.08 0.05 8
             foreach ($sign in -1, 1) {
                 Add-ChamferBox $vertices $faces ($sign * 0.113) 0.091 0.087 0.059 0.10 0.012 0.008
-                Add-Tube $vertices $faces ($sign * 0.143) 0.155 0.063 0.05 0.026 32 ($sign * 1.12) 0 0.007 2
+                Add-Tube $vertices $faces ($sign * 0.184) 0.155 0.079 0.05 0.009 32 ($sign * 1.12) 0 0.003 2
                 Add-Box $vertices $faces ($sign * 0.09) 0.045 0.015 0.022 0.07 0.10 1
             }
             Add-ChamferBox $vertices $faces 0 0.112 -0.083 0.146 0.076 0.011 0.012 2
@@ -555,8 +555,9 @@ public static class SAAPSMeshPreview {
                 double nl = Math.Sqrt(snx*snx+sny*sny+snz*snz);
                 double light = 0.62+0.55*Math.Max(0,(-0.4*snx+0.8*sny+0.4*snz)/Math.Max(1e-12,nl)/Math.Sqrt(0.96));
                 depth[index] = d;
-                int floor = size == 256 ? 150 : 0;
-                pixels[index] = Color.FromArgb(255,Math.Max(floor,Math.Min(255,(int)(colour.R*light))),Math.Max(floor,Math.Min(255,(int)(colour.G*light))),Math.Max(floor,Math.Min(255,(int)(colour.B*light)))).ToArgb();
+                int red = Math.Min(255,(int)(colour.R*light)), green = Math.Min(255,(int)(colour.G*light)), blue = Math.Min(255,(int)(colour.B*light));
+                if (size == 256) { red = 150+red*105/255; green = 150+green*105/255; blue = 150+blue*105/255; }
+                pixels[index] = Color.FromArgb(255,red,green,blue).ToArgb();
             }
         }
         // Subtle depth-discontinuity lines expose recesses in a single-material preview.
