@@ -56,7 +56,11 @@ $sha = [Security.Cryptography.SHA256]::Create()
 try {
     $expected = @(Get-ChildItem -LiteralPath $stage -File -Recurse)
     if ($archive.Entries.Count -ne $expected.Count) { throw "ZIP entry count mismatch" }
+    foreach ($path in 'BepInEx/plugins/SprocketAdvancedAPS.dll', 'ConfigExamples/sprocket.advancedaps.cfg', 'SHA256SUMS.txt') {
+        if ($null -eq $archive.GetEntry($path)) { throw "Missing ZIP path: $path" }
+    }
     foreach ($entry in $archive.Entries) {
+        if ($entry.FullName.Contains('\') -or $entry.FullName.StartsWith('BepInEx/config/')) { throw "Unsafe ZIP layout: $($entry.FullName)" }
         $stream = $entry.Open()
         try { $hash = [BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-', '') }
         finally { $stream.Dispose() }
