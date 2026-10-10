@@ -209,7 +209,7 @@
       "notes": [
         "Classifies threats by signature.",
         "APFSDS effect is a simulated capability based on public claims, NOT confirmed performance.",
-        "Combines hard-kill and soft-kill; runtime jam cone is separately limited to 30 degrees horizontal and 20 degrees vertical about module local +Z.",
+        "Combines hard-kill and soft-kill.",
         "gameplay_approximation: all values"
       ]
     },
@@ -225,8 +225,8 @@
       "reaction_time_ms": 50,
       "engagement_range_min_m": 10,
       "engagement_range_max_m": 80,
-      "engagement_fov_h": 30,
-      "engagement_fov_v": 20,
+      "engagement_fov_h": 320,
+      "engagement_fov_v": 45,
       "countermeasure_capacity": 20,
       "reload_time_s": 2,
       "cooldown_between_shots_s": 1.2,

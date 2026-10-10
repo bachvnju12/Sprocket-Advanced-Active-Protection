@@ -482,9 +482,7 @@ namespace SprocketAdvancedAPS.Systems
             if (_disposed) return;
 
             // Only soft-kill/hybrid systems jam, and only guided rounds can lose a lock.
-            if (!APSCore.ConfigEnabled.Value || !APSThreatClassifier.IsGuided(threat.ThreatClass) ||
-                !APSThreatTracker.Refresh(threat, module.Vehicle, module.VehicleState.Velocity) ||
-                !module.CanEngage(threat) || !module.IsInJamEnvelope(threat.Position)) return;
+            if (!APSThreatClassifier.IsGuided(threat.ThreatClass)) return;
             if (!APSInterceptRules.JamReady(module.Definition.Type != APSType.HardKill, module.IsEnabled && APSCore.IsModuleEnabled(module.Definition.Id),
                 module.IsOperational, module.IsDestroyed, module.Health, module.RemainingCountermeasures, module.CooldownRemaining, threat.IsFriendly)) return;
 
@@ -511,6 +509,7 @@ namespace SprocketAdvancedAPS.Systems
             };
 
             // Visual/audio feedback
+            APSVisualManager.Instance?.FireSoftKillEffect(module, threat);
             APSAudioManager.Instance?.PlayJamSound(module);
 
             if (APSCore.ConfigDebugMode.Value)
@@ -537,21 +536,13 @@ namespace SprocketAdvancedAPS.Systems
 
                 // Track the protected vehicle: a round is walked off the line to the vehicle, not a fixed point.
                 var vehicle = state.Module.Vehicle;
-                if (vehicle == null || vehicle.Released || !APSCore.ConfigEnabled.Value ||
-                    !APSInterceptRules.JamHeld(state.Module.IsEnabled && APSCore.IsModuleEnabled(state.Module.Definition.Id),
-                        state.Module.IsOperational, state.Module.IsDestroyed, state.Module.Health, state.Threat.IsFriendly))
+                if (vehicle == null || vehicle.Released)
                 {
                     toRemove.Add(kvp.Key);
                     continue;
                 }
                 state.VehiclePosition = state.Module.VehicleState.Position;
 
-                if (!APSThreatTracker.Refresh(state.Threat, vehicle, state.Module.VehicleState.Velocity) ||
-                    !state.Module.IsInJamEnvelope(state.Threat.Position))
-                {
-                    toRemove.Add(kvp.Key);
-                    continue;
-                }
                 // Apply guidance disruption to the projectile
                 DisruptGuidance(state);
             }

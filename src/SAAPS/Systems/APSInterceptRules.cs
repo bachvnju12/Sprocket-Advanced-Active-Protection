@@ -11,24 +11,6 @@ namespace SprocketAdvancedAPS.Systems
             canJam && enabled && operational && !destroyed && float.IsFinite(health) && health > 0f &&
             ammo > 0 && float.IsFinite(cooldown) && cooldown <= 0f && !friendly;
 
-        internal const float JamHorizontalFOV = 30f;
-        internal const float JamVerticalFOV = 20f;
-
-        internal static bool InCone(float x, float y, float z, float horizontalFOV, float verticalFOV)
-        {
-            if (!float.IsFinite(x) || !float.IsFinite(y) || !float.IsFinite(z) ||
-                !float.IsFinite(horizontalFOV) || !float.IsFinite(verticalFOV) ||
-                horizontalFOV <= 0f || horizontalFOV > 360f || verticalFOV <= 0f || verticalFOV > 180f) return false;
-            double horizontal = Math.Sqrt((double)x * x + (double)z * z);
-            if (horizontal == 0d && y == 0f) return false;
-            return Math.Abs(Math.Atan2(x, z) * 180d / Math.PI) <= horizontalFOV * .5d + 1e-5d &&
-                Math.Abs(Math.Atan2(y, horizontal) * 180d / Math.PI) <= verticalFOV * .5d + 1e-5d;
-        }
-
-        // A held jam requires a live emitter, not another round of ammo/cooldown.
-        internal static bool JamHeld(bool enabled, bool operational, bool destroyed, float health, bool friendly) =>
-            enabled && operational && !destroyed && float.IsFinite(health) && health > 0f && !friendly;
-
         // How fast a jammed round is walked off its aim line; a stronger jam turns it harder.
         internal static float DeflectionRate(float strength) => 1.2f + 2.5f * Math.Clamp(strength, 0f, 1f);
 

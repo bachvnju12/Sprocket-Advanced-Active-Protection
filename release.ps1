@@ -43,7 +43,7 @@ $manifest = foreach ($file in $files) {
     "$( (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant() )  $relative"
 }
 [IO.File]::WriteAllLines((Join-Path $stage "SHA256SUMS.txt"), [string[]]$manifest, [Text.UTF8Encoding]::new($false))
-Add-Type -AssemblyName System.IO.Compression.FileSystem
+Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
 $archive = [IO.Compression.ZipFile]::Open($zip, [IO.Compression.ZipArchiveMode]::Create)
 try {
     foreach ($file in Get-ChildItem -LiteralPath $stage -File -Recurse) {

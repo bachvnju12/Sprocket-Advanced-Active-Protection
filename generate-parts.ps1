@@ -11,6 +11,7 @@ $previewsDir = Join-Path $OutputRoot "previews"
 $texturesDir = Join-Path $OutputRoot "textures"
 $atlasPath = Join-Path $texturesDir "saaps_surfaces.png"
 New-Item -ItemType Directory -Force -Path $partsDir, $localizationDir, $meshesDir, $iconsDir, $previewsDir, $texturesDir | Out-Null
+$referenceShapes = @("drozd1", "shtora1", "trophy")
 Add-Type -AssemblyName System.Drawing
 
 $systems = @(
@@ -36,7 +37,7 @@ function New-BoxMesh([double]$X, [double]$Z, [double]$Height) {
     return @{ vertices = $verts; faces = $faces }
 }
 
-function Add-Box([System.Collections.Generic.List[double]]$Vertices, [System.Collections.Generic.List[object]]$Faces, [double]$X, [double]$Y, [double]$Z, [double]$Width, [double]$Height, [double]$Depth, [int]$Surface = 0) {
+function Add-Box([System.Collections.Generic.List[double]]$Vertices, [System.Collections.Generic.List[object]]$Faces, [double]$X, [double]$Y, [double]$Z, [double]$Width, [double]$Height, [double]$Depth) {
     $mesh = New-BoxMesh ($Width / 2) ($Depth / 2) $Height
     $base = $Vertices.Count / 3
     for ($i = 0; $i -lt $mesh.vertices.Count; $i += 3) {
@@ -45,7 +46,7 @@ function Add-Box([System.Collections.Generic.List[double]]$Vertices, [System.Col
         $Vertices.Add($Z + $mesh.vertices[$i + 2])
     }
     foreach ($face in $mesh.faces) {
-        $Faces.Add(@{ v = @($face.v | ForEach-Object { $_ + $base }); t = $face.t; surface = $Surface })
+        $Faces.Add(@{ v = @($face.v | ForEach-Object { $_ + $base }); t = $face.t })
     }
 }
 
@@ -221,17 +222,10 @@ function New-SystemMesh($Shape) {
                     Add-Tube $vertices $faces $x $y 0.006 0.078 0.235 24 0 (-0.08) 0.012
                     Add-Tube $vertices $faces $x ($y + 0.001) 0.02 0.086 0.018 24 0 (-0.08)
                     Add-Tube $vertices $faces $x ($y + 0.009) 0.13 0.082 0.014 24 0 (-0.08)
-                    Add-Box $vertices $faces $x ($y - 0.043) 0.03 0.076 0.012 0.10 1
-                    Add-Tube $vertices $faces ($x + 0.03) ($y - 0.029) 0.08 0.009 0.009 6 0 0 0 1
                 }
             }
             Add-ChamferBox $vertices $faces 0 0.205 -0.035 0.196 0.068 0.18 0.01
-            Add-ChamferBox $vertices $faces 0 0.271 -0.042 0.208 0.014 0.20 0.0055
-            Add-ChamferBox $vertices $faces 0 0.214 0.146 0.161 0.044 0.005 0.006 2
-            foreach ($x in -0.079, 0.079) {
-                Add-Tube $vertices $faces $x 0.243 0.147 0.009 0.009 6 0 0 0 1
-                Add-Box $vertices $faces $x 0.032 -0.075 0.025 0.21 0.016 1
-            }
+            Add-Box $vertices $faces 0 0.271 0.055 0.208 0.01 0.20
             foreach ($x in -0.078, 0.078) {
                 Add-Box $vertices $faces $x 0 -0.02 0.025 0.026 0.17
             }
@@ -242,12 +236,7 @@ function New-SystemMesh($Shape) {
             Add-TubeCluster $vertices $faces 0.085 0.075 0 3 2 0.055 34 ([Math]::PI / 2) 0.05 0.12
             Add-TubeCluster $vertices $faces -0.085 0.075 0 3 2 0.055 34 (-[Math]::PI / 2) 0.05 0.12
             Add-Drum $vertices $faces 0 0.09 -0.02 0.15 0.06 10
-            Add-ChamferBox $vertices $faces 0 0.08 -0.135 0.17 0.10 0.06 0.013
-            Add-ChamferBox $vertices $faces 0 0.094 -0.142 0.139 0.072 0.007 0.01 2
-            foreach ($x in -0.058, 0.058) {
-                Add-Box $vertices $faces $x 0.02 -0.069 0.022 0.021 0.15 1
-                Add-Tube $vertices $faces $x 0.118 -0.142 0.009 0.006 6 ([Math]::PI) 0 0 1
-            }
+            Add-Box $vertices $faces 0 0.08 -0.105 0.17 0.10 0.06
         }
         # Arena: interceptor panels sit around the lower margin of the turret ring, Doppler
         # radar on the roof.
@@ -256,22 +245,21 @@ function New-SystemMesh($Shape) {
             Add-LauncherRing $vertices $faces 0.163 0.05 20 6 0.038 0.06
             Add-Drum $vertices $faces 0 0.11 0 0.11 0.05 10
             Add-RotatedBox $vertices $faces 0 0.16 -0.03 0.13 0.025 0.10 (25 * [Math]::PI / 180) ([Math]::PI)
-            Add-ChamferBox $vertices $faces 0 0.107 0.047 0.084 0.044 0.008 0.008 2
-            foreach ($x in -0.085, 0.085) {
-                Add-Box $vertices $faces $x 0.102 -0.03 0.02 0.071 0.017 1
-                Add-Tube $vertices $faces $x 0.116 -0.019 0.008 0.006 6 0 0 0 1
-            }
         }
         # Arena-M: modular box tower inside the same panel ring, with a raked roof radar.
         "arenam" {
             Add-Drum $vertices $faces 0 0.02 0 0.27 0.08 12
             Add-LauncherRing $vertices $faces 0.152 0.045 16 6 0.04 0.065
+<<<<<<< HEAD
             Add-ChamferBox $vertices $faces 0 0.10 -0.09 0.20 0.09 0.18 0.015
             Add-ChamferBox $vertices $faces 0 0.114 0.091 0.158 0.063 0.006 0.009 2
             foreach ($x in -0.072, 0.072) {
                 Add-Box $vertices $faces $x 0.1 -0.008 0.016 0.08 0.19 1
                 Add-Tube $vertices $faces $x 0.184 0.016 0.01 0.009 6 0 0 0 1
             }
+=======
+            Add-Box $vertices $faces 0 0.10 0 0.20 0.09 0.18
+>>>>>>> parent of 52dcc7e (1)
             Add-Drum $vertices $faces 0 0.19 0 0.09 0.05 8
             Add-RotatedBox $vertices $faces 0 0.10 -0.07 0.16 0.028 0.11 (30 * [Math]::PI / 180) ([Math]::PI)
         }
@@ -286,12 +274,15 @@ function New-SystemMesh($Shape) {
             Add-Tube $vertices $faces 0.165 0.155 0.07 0.055 0.02 10 1.12
             Add-RotatedBox $vertices $faces 0 0.10 -0.06 0.20 0.03 0.13 (38 * [Math]::PI / 180) ([Math]::PI)
             Add-Drum $vertices $faces 0 0.17 0.02 0.08 0.05 8
+<<<<<<< HEAD
             foreach ($sign in -1, 1) {
                 Add-ChamferBox $vertices $faces ($sign * 0.113) 0.091 0.087 0.059 0.10 0.012 0.008
                 Add-Tube $vertices $faces ($sign * 0.184) 0.155 0.079 0.05 0.009 32 ($sign * 1.12) 0 0.003 2
                 Add-Box $vertices $faces ($sign * 0.09) 0.045 0.015 0.022 0.07 0.10 1
             }
             Add-ChamferBox $vertices $faces 0 0.112 -0.083 0.146 0.076 0.011 0.012 2
+=======
+>>>>>>> parent of 52dcc7e (1)
         }
         # Single T-90 emitter housing: circular front, finned body, protective handle,
         # and low mounting feet. Geometry details are selective, not every cooling pin.
@@ -300,13 +291,7 @@ function New-SystemMesh($Shape) {
             Add-Box $vertices $faces 0.105 0 0 0.07 0.035 0.19
             Add-ChamferBox $vertices $faces 0 0.035 -0.10 0.25 0.235 0.175 0.027
             Add-ChamferBox $vertices $faces 0 0.037 0.075 0.255 0.232 0.019 0.034
-            Add-Tube $vertices $faces 0 0.154 0.087 0.222 0.022 48 0 0 0.014 1
-            Add-Tube $vertices $faces 0 0.154 0.097 0.195 0.006 48 0 0 0.002 2
-            Add-ChamferBox $vertices $faces 0 0.06 -0.113 0.205 0.18 0.012 0.017 1
-            Add-Box $vertices $faces 0 0.102 -0.124 0.059 0.067 0.014 1
-            foreach ($x in -0.073, 0.073) {
-                Add-Tube $vertices $faces $x 0.125 -0.11 0.014 0.012 8 ([Math]::PI) 0 0 1
-            }
+            Add-Tube $vertices $faces 0 0.154 0.093 0.205 0.016 48 0 0 0.007 2
             foreach ($sign in -1, 1) {
                 $x = $sign * 0.133
                 for ($i = 0; $i -lt 12; $i++) {
@@ -324,11 +309,7 @@ function New-SystemMesh($Shape) {
                     Add-Drum $vertices $faces (-0.091 + $column * 0.026) 0.27 (-0.066 + $row * 0.027) 0.007 0.017 8
                 }
             }
-            Add-ChamferBox $vertices $faces 0 0.294 -0.086 0.276 0.022 0.022 0.008
-            foreach ($x in -0.106, 0.106) {
-                Add-Box $vertices $faces $x 0.004 -0.066 0.024 0.034 0.15 1
-                Add-Tube $vertices $faces $x 0.02 0.083 0.015 0.01 6 0 0 0 1
-            }
+            Add-Box $vertices $faces 0 0.294 -0.075 0.276 0.022 0.022
             foreach ($x in -0.106, 0.106) {
                 foreach ($y in 0.067, 0.238) {
                     Add-Tube $vertices $faces $x $y 0.094 0.014 0.007 12 0
@@ -342,12 +323,6 @@ function New-SystemMesh($Shape) {
             Add-Box $vertices $faces 0.10 0 -0.03 0.05 0.16 0.075
             Add-ChamferBox $vertices $faces 0 0.025 0 0.34 0.15 0.042 0.036
             Add-ChamferBox $vertices $faces 0 0.033 0.043 0.322 0.134 0.008 0.029 2
-            Add-ChamferBox $vertices $faces 0 0.041 -0.027 0.276 0.115 0.023 0.024 1
-            foreach ($x in -0.122, 0.122) {
-                Add-Box $vertices $faces $x 0.046 -0.019 0.014 0.10 0.025
-                Add-Tube $vertices $faces $x 0.061 -0.028 0.01 0.006 6 ([Math]::PI) 0 0 1
-            }
-            Add-Box $vertices $faces 0.035 0.017 -0.019 0.056 0.032 0.023 1
             Add-Box $vertices $faces 0.082 0.16 -0.058 0.075 0.045 0.115
             Add-Drum $vertices $faces 0.082 0.205 -0.058 0.073 0.025 24
             Add-ChamferBox $vertices $faces 0.082 0.23 -0.079 0.091 0.15 0.05 0.008
@@ -355,12 +330,6 @@ function New-SystemMesh($Shape) {
             Add-RotatedBox $vertices $faces 0.18 0.20 -0.083 0.012 0.215 0.115 0 0.22
             Add-Box $vertices $faces 0.082 0.396 -0.083 0.212 0.019 0.115
             Add-Box $vertices $faces 0.082 0.20 -0.13 0.212 0.017 0.115
-            Add-Tube $vertices $faces 0.082 0.238 -0.054 0.056 0.041 32 0 0 0.012 1
-            Add-ChamferBox $vertices $faces 0.082 0.286 -0.03 0.076 0.062 0.043 0.008 1
-            foreach ($x in -0.003, 0.167) {
-                Add-Box $vertices $faces $x 0.214 -0.088 0.013 0.166 0.014 1
-                Add-Tube $vertices $faces $x 0.229 -0.069 0.011 0.008 6 0 0 0 1
-            }
             foreach ($x in -0.139, 0.139) {
                 Add-Tube $vertices $faces $x 0.117 0.051 0.012 0.005 12 0
             }
@@ -369,16 +338,10 @@ function New-SystemMesh($Shape) {
         # on a roof pedestal under a small radar panel.
         "ironfist" {
             Add-Drum $vertices $faces 0 0.03 0 0.25 0.06 12
-            Add-ChamferBox $vertices $faces 0 0.09 -0.085 0.19 0.10 0.17 0.014
-            Add-ChamferBox $vertices $faces 0 0.118 0.087 0.137 0.045 0.007 0.008 1
-            foreach ($x in -0.065, 0.065) {
-                Add-Box $vertices $faces $x 0.077 0.012 0.018 0.013 0.146 1
-                Add-Tube $vertices $faces $x 0.13 0.094 0.01 0.008 6 0 0 0 1
-            }
+            Add-Box $vertices $faces 0 0.09 0 0.19 0.10 0.17
             Add-TubeCluster $vertices $faces 0 0.19 0.02 2 2 0.058 26 0 0.05 0.09
             Add-Drum $vertices $faces 0 0.12 -0.11 0.11 0.035 8
-            Add-ChamferBox $vertices $faces 0 0.19 -0.115 0.07 0.04 0.05 0.007
-            Add-ChamferBox $vertices $faces 0 0.196 -0.12 0.052 0.027 0.005 0.005 2
+            Add-Box $vertices $faces 0 0.19 -0.09 0.07 0.04 0.05
         }
         # AMAP-ADS: sensor and weapon modules arranged around the vehicle, StrikeShield between
         # the armour layers. Reads as a flat frame with corner sensors, not a stacked tower.
@@ -392,27 +355,14 @@ function New-SystemMesh($Shape) {
             Add-Drum $vertices $faces -0.13 0.10 -0.11 0.07 0.06 8
             Add-Drum $vertices $faces 0.13 0.10 -0.11 0.07 0.06 8
             Add-Drum $vertices $faces 0 0.10 0 0.12 0.035 8
-            foreach ($x in -0.13, 0.13) {
-                foreach ($z in -0.11, 0.11) {
-                    Add-ChamferBox $vertices $faces $x 0.115 ($z + 0.032) 0.044 0.025 0.006 0.006 2
-                    Add-Box $vertices $faces $x 0.029 $z 0.076 0.014 0.061 1
-                }
-                Add-Box $vertices $faces $x 0.039 0 0.032 0.019 0.23 1
-            }
         }
         # Zaslin: external pods hung off a low base, no tubes and no roof radar.
         "zaslin" {
             Add-Drum $vertices $faces 0 0.03 0 0.28 0.06 12
             Add-Drum $vertices $faces -0.125 0.09 0 0.10 0.13 8
             Add-Drum $vertices $faces 0.125 0.09 0 0.10 0.13 8
-            Add-ChamferBox $vertices $faces 0 0.09 0.015 0.11 0.07 0.11 0.011
-            Add-ChamferBox $vertices $faces 0 0.16 -0.115 0.09 0.05 0.07 0.008
-            Add-ChamferBox $vertices $faces 0 0.104 0.126 0.082 0.043 0.005 0.006 2
-            foreach ($x in -0.125, 0.125) {
-                Add-Box $vertices $faces $x 0.09 0 0.102 0.013 0.047 1
-                Add-Box $vertices $faces $x 0.182 0 0.102 0.013 0.047 1
-                Add-Tube $vertices $faces $x 0.195 0.009 0.013 0.012 6 0 0 0 1
-            }
+            Add-Box $vertices $faces 0 0.09 0.07 0.11 0.07 0.11
+            Add-Box $vertices $faces 0 0.16 -0.08 0.09 0.05 0.07
         }
     }
     # Accumulate wall normals before splitting UV seams. Caps and housing edges stay hard.
@@ -555,9 +505,13 @@ public static class SAAPSMeshPreview {
                 double nl = Math.Sqrt(snx*snx+sny*sny+snz*snz);
                 double light = 0.62+0.55*Math.Max(0,(-0.4*snx+0.8*sny+0.4*snz)/Math.Max(1e-12,nl)/Math.Sqrt(0.96));
                 depth[index] = d;
+<<<<<<< HEAD
                 int red = Math.Min(255,(int)(colour.R*light)), green = Math.Min(255,(int)(colour.G*light)), blue = Math.Min(255,(int)(colour.B*light));
                 if (size == 256) { red = 150+red*105/255; green = 150+green*105/255; blue = 150+blue*105/255; }
                 pixels[index] = Color.FromArgb(255,red,green,blue).ToArgb();
+=======
+                pixels[index] = Color.FromArgb(255,Math.Min(255,(int)(colour.R*light)),Math.Min(255,(int)(colour.G*light)),Math.Min(255,(int)(colour.B*light))).ToArgb();
+>>>>>>> parent of 52dcc7e (1)
             }
         }
         // Subtle depth-discontinuity lines expose recesses in a single-material preview.
@@ -573,8 +527,7 @@ public static class SAAPSMeshPreview {
             }
             if (edge) {
                 Color colour = Color.FromArgb(pixels[index]);
-                int floor = size == 256 ? 150 : 0;
-                pixels[index] = Color.FromArgb(255,Math.Max(floor,(int)(colour.R*0.72)),Math.Max(floor,(int)(colour.G*0.72)),Math.Max(floor,(int)(colour.B*0.72))).ToArgb();
+                pixels[index] = Color.FromArgb(255,(int)(colour.R*0.72),(int)(colour.G*0.72),(int)(colour.B*0.72)).ToArgb();
             }
         }
         using (var bitmap = new Bitmap(size,size,PixelFormat.Format32bppArgb)) {
@@ -608,9 +561,11 @@ foreach ($system in $systems) {
     $mesh = New-SystemMesh $system.Shape
     $mesh | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $meshesDir "$name.json") -Encoding utf8
     Write-Icon $mesh (Join-Path $iconsDir "$name.png")
-    Write-Icon $mesh (Join-Path $previewsDir "$name-front.png") 768 0 0
-    Write-Icon $mesh (Join-Path $previewsDir "$name-side.png") 768 ([Math]::PI / 2) 0
-    Write-Icon $mesh (Join-Path $previewsDir "$name-isometric.png") 768
+    if ($system.Shape -in $referenceShapes) {
+        Write-Icon $mesh (Join-Path $previewsDir "$name-front.png") 768 0 0
+        Write-Icon $mesh (Join-Path $previewsDir "$name-side.png") 768 ([Math]::PI / 2) 0
+        Write-Icon $mesh (Join-Path $previewsDir "$name-isometric.png") 768
+    }
     $part = [ordered]@{
         v = "0.2"
         guid = $system.Guid
@@ -627,7 +582,7 @@ foreach ($system in $systems) {
         components = @(
             [ordered]@{ fileID = $name; type = "model"; info = [ordered]@{
                 v = "0.2"; meshGuid = "691897f033278e64d8640a39162942bb"
-                materialGuids = @("5fd2544ba4a8a7a44b737c00a79f74f3")
+                materialGuids = @("1b2eef9bd544f7442bf5a584bfd323b2")
                 scaling = $true; flipping = $true; selectable = $true; placementSurface = $false
                 damageable = $false
             } }
