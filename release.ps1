@@ -3,7 +3,9 @@ param([string]$GameRoot = "", [string]$OutputRoot = "")
 $ErrorActionPreference = "Stop"
 $root = $PSScriptRoot
 if (-not $OutputRoot) { $OutputRoot = Join-Path $root "dist" }
+$OutputRoot = [IO.Path]::GetFullPath($OutputRoot)
 
+& (Join-Path $root "tests\check-config.ps1")
 & (Join-Path $root "tests\check-parts.ps1")
 & dotnet run --project (Join-Path $root "tests\RegistryCheck.csproj") -- (Join-Path $root "generated\Sprocket_Data\StreamingAssets\Parts")
 if ($LASTEXITCODE -ne 0) { throw "Registry regression failed: $LASTEXITCODE" }
@@ -42,7 +44,13 @@ $manifest = foreach ($file in $files) {
 }
 [IO.File]::WriteAllLines((Join-Path $stage "SHA256SUMS.txt"), [string[]]$manifest, [Text.UTF8Encoding]::new($false))
 Add-Type -AssemblyName System.IO.Compression.FileSystem
-[IO.Compression.ZipFile]::CreateFromDirectory($stage, $zip, [IO.Compression.CompressionLevel]::Optimal, $false)
+$archive = [IO.Compression.ZipFile]::Open($zip, [IO.Compression.ZipArchiveMode]::Create)
+try {
+    foreach ($file in Get-ChildItem -LiteralPath $stage -File -Recurse) {
+        $relative = $file.FullName.Substring($stage.Length + 1).Replace('\', '/')
+        [IO.Compression.ZipFileExtensions]::CreateEntryFromFile($archive, $file.FullName, $relative, [IO.Compression.CompressionLevel]::Optimal) | Out-Null
+    }
+} finally { $archive.Dispose() }
 $archive = [IO.Compression.ZipFile]::OpenRead($zip)
 $sha = [Security.Cryptography.SHA256]::Create()
 try {

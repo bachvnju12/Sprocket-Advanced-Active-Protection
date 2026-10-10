@@ -24,18 +24,18 @@ Sprocket Advanced APS adds a complete Active Protection System simulation to Spr
 - **Real threat detection** using the native Sprocket `ProjectileRegister`.
 - **Threat classification** distinguishes RPG, ATGM (SACLOS/MCLOS/fire-and-forget), HEAT, HE, APFSDS, cannon HE, UAV/FPV, and loitering munitions.
 - **Hard-kill interception** physically removes intercepted projectiles from the native register so collision and damage stay consistent.
-- **Soft-kill jamming** disrupts guided missile guidance with time-varying noise proportional to guidance type.
+- **Soft-kill jamming** models guidance disruption through constant-speed velocity deflection while the guided projectile remains inside the emitter cone.
 - **Per-module state**: health, operational status, countermeasure capacity, cooldown, destroyed state.
 - **Vehicle Designer integration**: persistent APS model parts appear in the editor.
 - **HUD / F7 / inspector**: UI stubs, not implemented in this build. Coverage gates run in gameplay; debug logs report engagement decisions.
 - **Save/Load**: APS configuration persists with the vehicle blueprint.
-- **Balance modes**: Realism, Balanced, Sandbox.
-- **JSON-driven profiles**: add custom APS presets without recompiling.
+- **Balance controls**: configurable range, reaction and hard-kill probability multipliers; no Realism/Balanced/Sandbox mode selector in this build.
+- **Runtime config**: BepInEx `.cfg` controls module enablement, ranges, reaction and hard-kill speed/probability. JSON profiles are reference data, not loaded by this build.
 - **Optional mod integration** with Shell Selector, Material Selector, Thermal Sight, Cold War Expansion, Carousel Autoloader, Hydropneumatic, SmokeSuppressor, and Keybinds.
 
 ## Balance disclaimer
 
-All effectiveness values are **gameplay approximations**, not confirmed real-world performance. The Afganit APFSDS capability in particular is a simulated feature based on public claims and is explicitly flagged as such in the inspector and config.
+All effectiveness values are **gameplay approximations**, not confirmed real-world performance. The Afganit APFSDS capability in particular is a simulated feature based on public claims and is documented as such in source definitions and reference profile notes; no inspector is implemented.
 
 ## Requirements
 
@@ -83,7 +83,13 @@ Capacity is per placed module: Drozd-1 4, Drozd-2 6, Arena 8, Arena-M 10, Afgani
 
 Module selection separates the two capabilities. Hard-kill systems compete on intercept probability; a soft-kill system carries none, so it competes on jam probability instead and a free hard-kill module still wins and removes the round outright. Simultaneous-engagement slots go to a module that can fire right now: a round already inside a module's engagement envelope outranks one still inbound, because scarce slots spent on a target that cannot be shot this tick starve the rounds that can be.
 
-Custom APS presets can be defined in JSON in the mod directory (see `Config/default-aps-profiles.json`).
+`Config/default-aps-profiles.json` is reference data, not a runtime profile loader. Compiled definitions remain authoritative. `Config/sprocket.advancedaps.cfg` is a clean default template; do not replace a player's customized config automatically.
+
+## Release packaging
+
+Run `powershell -NoProfile -ExecutionPolicy Bypass -File release.ps1` (optional `-GameRoot`). It regenerates/tests assets, runs registry/cone regression, builds Release with deployment disabled, and creates a ZIP plus SHA256 checksum under `dist/`. ZIP extracts directly beside `Sprocket.exe`; config template is under `ConfigExamples/`, so existing `BepInEx/config/sprocket.advancedaps.cfg` is untouched. ZIP entry bytes are hash-verified. No game assemblies, photos, probes, logs or user config are bundled.
+
+Commit source, tests, `.gitignore`, release script and default config; attach ZIP/checksum to GitHub Releases instead of committing `dist/`. Files already tracked under ignored `bin/`, `obj/` or `work/` require explicit index cleanup; `.gitignore` alone does not untrack them.
 
 ## Compatibility
 

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.0 packaging update - 2026-10-10
+
+- Persistent model IDs, generated meshes/icons/atlas and native exterior paint adapter.
+- Selective mechanical details across ten models; three reference drafts, seven approximate layouts.
+- Native shell visual adapter replaces yellow hard-kill line; 40 mm explosion remains release-gated.
+- Soft-kill beam removed; separate 30/20-degree jam cone rechecked during held jams.
+- Clean runtime .cfg template, config-default regression, no-deploy release script and verified ZIP/checksums.
+- Added Git ignore rules for local build/probe/release output.
+- Corrected installation and verification docs. HUD/F7/inspector, balance-mode UI and JSON preset loading are not implemented; older entries below describe intended features, not verified completion.
+- Camo lifecycle, native tracer appearance and current model quality remain live acceptance items.
+
 ## [1.0.0] - 2026-10-09
 
 ### Added
