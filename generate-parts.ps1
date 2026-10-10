@@ -250,16 +250,12 @@ function New-SystemMesh($Shape) {
         "arenam" {
             Add-Drum $vertices $faces 0 0.02 0 0.27 0.08 12
             Add-LauncherRing $vertices $faces 0.152 0.045 16 6 0.04 0.065
-<<<<<<< HEAD
             Add-ChamferBox $vertices $faces 0 0.10 -0.09 0.20 0.09 0.18 0.015
             Add-ChamferBox $vertices $faces 0 0.114 0.091 0.158 0.063 0.006 0.009 2
             foreach ($x in -0.072, 0.072) {
                 Add-Box $vertices $faces $x 0.1 -0.008 0.016 0.08 0.19 1
                 Add-Tube $vertices $faces $x 0.184 0.016 0.01 0.009 6 0 0 0 1
             }
-=======
-            Add-Box $vertices $faces 0 0.10 0 0.20 0.09 0.18
->>>>>>> parent of 52dcc7e (1)
             Add-Drum $vertices $faces 0 0.19 0 0.09 0.05 8
             Add-RotatedBox $vertices $faces 0 0.10 -0.07 0.16 0.028 0.11 (30 * [Math]::PI / 180) ([Math]::PI)
         }
@@ -274,15 +270,12 @@ function New-SystemMesh($Shape) {
             Add-Tube $vertices $faces 0.165 0.155 0.07 0.055 0.02 10 1.12
             Add-RotatedBox $vertices $faces 0 0.10 -0.06 0.20 0.03 0.13 (38 * [Math]::PI / 180) ([Math]::PI)
             Add-Drum $vertices $faces 0 0.17 0.02 0.08 0.05 8
-<<<<<<< HEAD
             foreach ($sign in -1, 1) {
                 Add-ChamferBox $vertices $faces ($sign * 0.113) 0.091 0.087 0.059 0.10 0.012 0.008
                 Add-Tube $vertices $faces ($sign * 0.184) 0.155 0.079 0.05 0.009 32 ($sign * 1.12) 0 0.003 2
                 Add-Box $vertices $faces ($sign * 0.09) 0.045 0.015 0.022 0.07 0.10 1
             }
             Add-ChamferBox $vertices $faces 0 0.112 -0.083 0.146 0.076 0.011 0.012 2
-=======
->>>>>>> parent of 52dcc7e (1)
         }
         # Single T-90 emitter housing: circular front, finned body, protective handle,
         # and low mounting feet. Geometry details are selective, not every cooling pin.
