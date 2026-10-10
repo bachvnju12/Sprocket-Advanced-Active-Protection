@@ -66,10 +66,54 @@ internal static class RegistryCheck
         Console.WriteLine("PASS: production speed, trajectory, reaction, readiness, jamming, deflection, near-field and native slot-liveness rules (offline, no native projectile release).");
     }
 
+    private static void CheckJamCone()
+    {
+        const float h = SprocketAdvancedAPS.Systems.APSInterceptRules.JamHorizontalFOV;
+        const float v = SprocketAdvancedAPS.Systems.APSInterceptRules.JamVerticalFOV;
+        bool Cone(float x, float y, float z) => SprocketAdvancedAPS.Systems.APSInterceptRules.InCone(x, y, z, h, v);
+        (float X, float Y, float Z) Direction(double yaw, double pitch = 0)
+        {
+            yaw *= Math.PI / 180; pitch *= Math.PI / 180;
+            return ((float)(Math.Sin(yaw) * Math.Cos(pitch)), (float)Math.Sin(pitch), (float)(Math.Cos(yaw) * Math.Cos(pitch)));
+        }
+        foreach (var angles in new[] { (0d, 0d), (15d, 0d), (-15d, 0d), (0d, 10d), (0d, -10d), (15d, 10d) })
+        {
+            var d = Direction(angles.Item1, angles.Item2);
+            Check(Cone(d.X, d.Y, d.Z), "Inclusive jam cone: " + angles);
+        }
+        foreach (var angles in new[] { (15.01d, 0d), (-15.01d, 0d), (0d, 10.01d), (0d, -10.01d), (60d, 0d), (120d, 0d), (180d, 0d) })
+        {
+            var d = Direction(angles.Item1, angles.Item2);
+            Check(!Cone(d.X, d.Y, d.Z), "Outside jam cone: " + angles);
+        }
+        Check(!Cone(0, 0, 0) && !Cone(float.NaN, 0, 1) && !Cone(0, float.PositiveInfinity, 1), "Invalid direction rejected");
+        Check(Cone(float.MaxValue / 8, 0, float.MaxValue), "Large finite direction avoids squared overflow");
+        foreach (float bad in new[] { 0f, -1f, float.NaN, float.PositiveInfinity, 361f })
+            Check(!SprocketAdvancedAPS.Systems.APSInterceptRules.InCone(0, 0, 1, bad, v), "Invalid horizontal FOV rejected");
+        foreach (float bad in new[] { 0f, -1f, float.NaN, float.PositiveInfinity, 181f })
+            Check(!SprocketAdvancedAPS.Systems.APSInterceptRules.InCone(0, 0, 1, h, bad), "Invalid vertical FOV rejected");
+        // Model the same inverse rotation used by Transform.InverseTransformDirection.
+        var rotation = System.Numerics.Quaternion.CreateFromAxisAngle(System.Numerics.Vector3.UnitY, MathF.PI / 2);
+        var world = System.Numerics.Vector3.Transform(System.Numerics.Vector3.UnitZ, rotation);
+        var local = System.Numerics.Vector3.Transform(world, System.Numerics.Quaternion.Inverse(rotation));
+        Check(Cone(local.X, local.Y, local.Z) && !Cone(world.X, world.Y, world.Z), "Cone follows emitter rotation, not world forward");
+        var side = Direction(120);
+        Check(SprocketAdvancedAPS.Systems.APSInterceptRules.InCone(side.X, side.Y, side.Z, 350, 65) && !Cone(side.X, side.Y, side.Z), "Hybrid hard-kill cone stays wide while jam cone rejects side target");
+        Check(SprocketAdvancedAPS.Systems.APSInterceptRules.JamHeld(true, true, false, 1, false), "Held jam does not require another ammo/cooldown check");
+        Check(!SprocketAdvancedAPS.Systems.APSInterceptRules.JamHeld(false, true, false, 1, false), "Disabled emitter stops jam");
+        Check(!SprocketAdvancedAPS.Systems.APSInterceptRules.JamHeld(true, false, false, 1, false), "Inoperable emitter stops jam");
+        Check(!SprocketAdvancedAPS.Systems.APSInterceptRules.JamHeld(true, true, true, 1, false), "Destroyed emitter stops jam");
+        Check(!SprocketAdvancedAPS.Systems.APSInterceptRules.JamHeld(true, true, false, 1, true), "Friendly round cannot remain jammed");
+        foreach (float bad in new[] { 0f, -1f, float.NaN, float.PositiveInfinity })
+            Check(!SprocketAdvancedAPS.Systems.APSInterceptRules.JamHeld(true, true, false, bad, false), "Invalid/dead emitter stops jam");
+        Console.WriteLine("PASS: production jam cone boundaries, invalid inputs, inverse-rotation math, hybrid cone separation and held-jam readiness (offline).");
+    }
+
     public static void Main(string[] args)
     {
         Check(args.Length == 1, "Pass generated Parts directory");
         CheckInterceptionRules();
+        CheckJamCone();
         int count = 0;
         foreach (string path in Directory.GetFiles(args[0], "saaps_*Part.json"))
         {

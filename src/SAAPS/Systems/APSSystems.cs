@@ -49,12 +49,16 @@ namespace SprocketAdvancedAPS.Systems
                     }
                 }
             }
-
+            APSVisualManager.Instance?.Update();
         }
 
         internal void FixedUpdate()
         {
-            if (!APSCore.ConfigEnabled.Value) return;
+            if (!APSCore.ConfigEnabled.Value)
+            {
+                APSSoftKillSystem.Instance?.FixedUpdate();
+                return;
+            }
             bool profile = APSCore.ConfigPerformanceLog.Value;
             long start = profile ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
             ProjectileTracker.Capture();
@@ -117,23 +121,95 @@ namespace SprocketAdvancedAPS.Systems
             _log = log;
         }
 
+        private sealed record Tracer(Sprocket.DamageModelling.IProjectileEngineObjectFactory Factory,
+            Transform Transform, Vector3 From, Vector3 To, float Born, float Duration);
+        private readonly List<Tracer> _tracers = new();
+        private Sprocket.DamageModelling.ProjectileDefinition? _tracerDefinition;
+        private bool _trailWarning;
+        private bool _tracerFailed;
+        private bool _effectWarning;
+
         internal void FireInterceptEffect(APSModuleState module, ThreatTrack threat, bool success)
         {
-            if (_disposed) return;
-            // Spawn interceptor trail from module to predicted intercept point
-            SpawnInterceptorTrail(module, threat, success);
+            if (_disposed || _tracerFailed || _tracers.Count >= 64) return;
+            Transform? visual = null;
+            Sprocket.DamageModelling.IProjectileEngineObjectFactory? factory = null;
+            try
+            {
+                var prototype = UnityEngine.Object.FindObjectOfType<Sprocket.DamageModelling.ProjectilesMain>()?.ProjectilePrototype;
+                if (prototype == null) throw new InvalidOperationException("Native shell visual prototype unavailable");
+                if (prototype.GetComponentsInChildren<Collider>(true).Length != 0 ||
+                    prototype.GetComponentsInChildren<Rigidbody>(true).Length != 0)
+                    throw new InvalidOperationException("Native shell prototype has physics components; tracer disabled");
+                // Private on-demand factory: never borrow the incoming ATGM's visual or shell pool.
+                factory = new Sprocket.DamageModelling.OnDemandProjectileEngineObjectFactory(prototype);
+                // Native projectile visual only: no Launch, register entry or damage functions.
+                _tracerDefinition ??= new Sprocket.DamageModelling.ProjectileDefinition("SAAPS visual interceptor", default,
+                    default, .1f, .04f, .16f, 0f, 1f,
+                    new Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<Sprocket.DamageModelling.ProjectileFunction>(0),
+                    new Il2CppInterop.Runtime.InteropTypes.Arrays.Il2CppReferenceArray<Sprocket.DamageModelling.ProjectileFunction>(0));
+                visual = factory.Get(_tracerDefinition);
+                if (visual == null) throw new InvalidOperationException("Native projectile visual unavailable");
+                if (visual.GetComponentsInChildren<Collider>(true).Length != 0 ||
+                    visual.GetComponentsInChildren<Rigidbody>(true).Length != 0)
+                    throw new InvalidOperationException("Native visual has physics components; tracer disabled");
+                var from = module.Transform.position;
+                var direction = threat.Position - from;
+                visual.position = from;
+                if (direction.sqrMagnitude > 1e-6f) visual.rotation = Quaternion.LookRotation(direction);
+                foreach (var trail in visual.GetComponentsInChildren<TrailRenderer>(true)) trail.Clear();
+                _tracers.Add(new Tracer(factory, visual, from, threat.Position, Time.time,
+                    Mathf.Clamp(direction.magnitude / 1000f, .025f, .08f)));
+            }
+            catch (Exception ex)
+            {
+                if (visual != null && factory != null) ReleaseTracer(factory, visual);
+                _tracerFailed = true;
+                if (_trailWarning) return;
+                _trailWarning = true;
+                _log.LogWarning($"[SAAPS] Native interceptor tracer unavailable; interception unaffected: {ex.Message}");
+            }
         }
 
-        internal void FireSoftKillEffect(APSModuleState module, ThreatTrack threat)
+        private void ReleaseTracer(Sprocket.DamageModelling.IProjectileEngineObjectFactory factory, Transform visual)
         {
-            if (_disposed) return;
-            // Spawn jamming beam / dazzle effect
-            SpawnJamEffect(module, threat);
+            try { factory.Release(visual); }
+            catch (Exception ex)
+            {
+                _tracerFailed = true;
+                // Only instances from our private on-demand factory; never the native prototype.
+                try { if (visual != null) UnityEngine.Object.Destroy(visual.gameObject); } catch { }
+                if (!_trailWarning) _log.LogWarning($"[SAAPS] Native tracer release failed; tracer disabled: {ex.Message}");
+                _trailWarning = true;
+            }
         }
 
-        private Material? _trailMaterial;
-        private Material? _jamMaterial;
-        private bool _effectWarning;
+        internal void Update()
+        {
+            for (int i = _tracers.Count - 1; i >= 0; i--)
+            {
+                var tracer = _tracers[i];
+                float age = Time.time - tracer.Born;
+                try
+                {
+                    if (tracer.Transform == null || age >= tracer.Duration + .05f)
+                    {
+                        if (tracer.Transform != null) ReleaseTracer(tracer.Factory, tracer.Transform);
+                        _tracers.RemoveAt(i);
+                        continue;
+                    }
+                    tracer.Transform.position = Vector3.Lerp(tracer.From, tracer.To, Mathf.Clamp01(age / tracer.Duration));
+                }
+                catch (Exception ex)
+                {
+                    _tracers.RemoveAt(i);
+                    if (tracer.Transform != null) ReleaseTracer(tracer.Factory, tracer.Transform);
+                    _tracerFailed = true;
+                    if (!_trailWarning) _log.LogWarning($"[SAAPS] Native tracer update failed: {ex.Message}");
+                    _trailWarning = true;
+                }
+            }
+        }
 
         internal void SpawnInterceptExplosion(Sprocket.DamageModelling.ProjectileRegister register, Vector3 position, Vector3 velocity)
         {
@@ -161,68 +237,16 @@ namespace SprocketAdvancedAPS.Systems
             }
         }
 
-        // Visual + audio of the launch attempt; success explosion comes from the native
-        // factory after the projectile is actually released.
-        internal void SpawnInterceptorTrail(APSModuleState module, ThreatTrack threat, bool success)
-        {
-            SpawnBeam(module.Transform.position, threat.Position, Color.yellow, 0.05f, 0.02f, 0.3f, "interceptor trail");
-        }
-
-        private void SpawnJamEffect(APSModuleState module, ThreatTrack threat)
-        {
-            SpawnBeam(module.Transform.position, threat.Position, Color.magenta, 0.1f, 0.05f, 0.5f, "jam effect");
-        }
-
-        private void SpawnBeam(Vector3 from, Vector3 to, Color color, float startWidth, float endWidth, float lifetime, string label)
-        {
-            try
-            {
-                var shader = Shader.Find("HDRP/Unlit") ?? Shader.Find("Unlit/Color");
-                if (shader == null) return;
-
-                // Two cached materials, reused by every shot, destroyed on unload.
-                bool jam = color.b > color.r;
-                var material = jam ? _jamMaterial : _trailMaterial;
-                if (material == null)
-                {
-                    material = new Material(shader) { hideFlags = HideFlags.HideAndDontSave };
-                    material.SetColor("_UnlitColor", color);
-                    material.SetColor("_Color", color);
-                    if (jam)
-                    {
-                        material.SetColor("_EmissiveColor", color);
-                        _jamMaterial = material;
-                    }
-                    else _trailMaterial = material;
-                }
-
-                var go = new GameObject("SAAPS_Effect");
-                go.transform.position = from;
-                go.hideFlags = HideFlags.HideAndDontSave;
-
-                var line = go.AddComponent<LineRenderer>();
-                line.positionCount = 2;
-                line.SetPosition(0, from);
-                line.SetPosition(1, to);
-                line.startWidth = startWidth;
-                line.endWidth = endWidth;
-                line.sharedMaterial = material;
-
-                UnityEngine.Object.Destroy(go, lifetime);
-            }
-            catch (Exception ex)
-            {
-                _log.LogError($"[SAAPS] Failed to spawn {label}: {ex.Message}");
-            }
-        }
-
         public void Dispose()
         {
             _disposed = true;
-            if (_trailMaterial != null) UnityEngine.Object.Destroy(_trailMaterial);
-            if (_jamMaterial != null) UnityEngine.Object.Destroy(_jamMaterial);
-            _trailMaterial = null;
-            _jamMaterial = null;
+            foreach (var tracer in _tracers)
+            {
+                if (tracer.Transform == null) continue;
+                ReleaseTracer(tracer.Factory, tracer.Transform);
+            }
+            _tracers.Clear();
+            _tracerDefinition = null;
             Instance = null;
         }
     }
