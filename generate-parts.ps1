@@ -37,7 +37,7 @@ function New-BoxMesh([double]$X, [double]$Z, [double]$Height) {
     return @{ vertices = $verts; faces = $faces }
 }
 
-function Add-Box([System.Collections.Generic.List[double]]$Vertices, [System.Collections.Generic.List[object]]$Faces, [double]$X, [double]$Y, [double]$Z, [double]$Width, [double]$Height, [double]$Depth) {
+function Add-Box([System.Collections.Generic.List[double]]$Vertices, [System.Collections.Generic.List[object]]$Faces, [double]$X, [double]$Y, [double]$Z, [double]$Width, [double]$Height, [double]$Depth, [int]$Surface = 0) {
     $mesh = New-BoxMesh ($Width / 2) ($Depth / 2) $Height
     $base = $Vertices.Count / 3
     for ($i = 0; $i -lt $mesh.vertices.Count; $i += 3) {
@@ -46,7 +46,7 @@ function Add-Box([System.Collections.Generic.List[double]]$Vertices, [System.Col
         $Vertices.Add($Z + $mesh.vertices[$i + 2])
     }
     foreach ($face in $mesh.faces) {
-        $Faces.Add(@{ v = @($face.v | ForEach-Object { $_ + $base }); t = $face.t })
+        $Faces.Add(@{ v = @($face.v | ForEach-Object { $_ + $base }); t = $face.t; surface = $Surface })
     }
 }
 
@@ -498,13 +498,9 @@ public static class SAAPSMeshPreview {
                 double nl = Math.Sqrt(snx*snx+sny*sny+snz*snz);
                 double light = 0.62+0.55*Math.Max(0,(-0.4*snx+0.8*sny+0.4*snz)/Math.Max(1e-12,nl)/Math.Sqrt(0.96));
                 depth[index] = d;
-<<<<<<< HEAD
                 int red = Math.Min(255,(int)(colour.R*light)), green = Math.Min(255,(int)(colour.G*light)), blue = Math.Min(255,(int)(colour.B*light));
                 if (size == 256) { red = 150+red*105/255; green = 150+green*105/255; blue = 150+blue*105/255; }
                 pixels[index] = Color.FromArgb(255,red,green,blue).ToArgb();
-=======
-                pixels[index] = Color.FromArgb(255,Math.Min(255,(int)(colour.R*light)),Math.Min(255,(int)(colour.G*light)),Math.Min(255,(int)(colour.B*light))).ToArgb();
->>>>>>> parent of 52dcc7e (1)
             }
         }
         // Subtle depth-discontinuity lines expose recesses in a single-material preview.
@@ -520,7 +516,8 @@ public static class SAAPSMeshPreview {
             }
             if (edge) {
                 Color colour = Color.FromArgb(pixels[index]);
-                pixels[index] = Color.FromArgb(255,(int)(colour.R*0.72),(int)(colour.G*0.72),(int)(colour.B*0.72)).ToArgb();
+                int floor = size == 256 ? 150 : 0;
+                pixels[index] = Color.FromArgb(255,Math.Max(floor,(int)(colour.R*0.72)),Math.Max(floor,(int)(colour.G*0.72)),Math.Max(floor,(int)(colour.B*0.72))).ToArgb();
             }
         }
         using (var bitmap = new Bitmap(size,size,PixelFormat.Format32bppArgb)) {
@@ -575,7 +572,7 @@ foreach ($system in $systems) {
         components = @(
             [ordered]@{ fileID = $name; type = "model"; info = [ordered]@{
                 v = "0.2"; meshGuid = "691897f033278e64d8640a39162942bb"
-                materialGuids = @("1b2eef9bd544f7442bf5a584bfd323b2")
+                materialGuids = @("5fd2544ba4a8a7a44b737c00a79f74f3")
                 scaling = $true; flipping = $true; selectable = $true; placementSurface = $false
                 damageable = $false
             } }

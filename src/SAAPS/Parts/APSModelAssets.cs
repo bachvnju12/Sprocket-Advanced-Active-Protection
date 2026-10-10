@@ -25,6 +25,13 @@ namespace SprocketAdvancedAPS.Parts
             if (APSPartRegistry.IsAPSComponent(__instance)) __instance.staticRenderer = false;
         }
 
+        [HarmonyPrefix, HarmonyPatch(typeof(VehicleObjectModel), nameof(VehicleObjectModel.RequestModelLoad))]
+        private static void Requesting(VehicleObjectModel __instance, ref Il2CppStringArray __1)
+        {
+            if (APSPartRegistry.IsAPSComponent(__instance))
+                __1 = new Il2CppStringArray(new[] { "5fd2544ba4a8a7a44b737c00a79f74f3" });
+        }
+
         [HarmonyPostfix, HarmonyPatch(typeof(VehicleObjectModel), nameof(VehicleObjectModel.OnModelLoaded))]
         private static void Loaded(VehicleObjectModel __instance) => Apply(__instance);
 
@@ -39,15 +46,15 @@ namespace SprocketAdvancedAPS.Parts
                     || Atlas.width != 512 || Atlas.height != 512) throw new InvalidDataException("Invalid SAAPS surface atlas");
                 Atlas.wrapMode = TextureWrapMode.Clamp;
                 Atlas.filterMode = FilterMode.Trilinear;
-                var surfaces = new VehicleMaterial[3];
+                var surfaces = new VehicleMaterial[2];
                 for (int i = 0; i < surfaces.Length; i++)
                 {
-                    var material = new Material(shader) { name = "SAAPS " + new[] { "paint", "dark metal", "sensor face" }[i], hideFlags = HideFlags.HideAndDontSave };
+                    var material = new Material(shader) { name = "SAAPS " + new[] { "dark metal", "sensor face" }[i], hideFlags = HideFlags.HideAndDontSave };
                     OwnedMaterials.Add(material);
                     material.SetTexture("_BaseColorMap", Atlas);
                     material.SetColor("_BaseColor", Color.white);
-                    material.SetFloat("_Smoothness", i == 0 ? .24f : i == 1 ? .38f : .65f);
-                    material.SetFloat("_Metallic", i == 1 ? .65f : 0f);
+                    material.SetFloat("_Smoothness", i == 0 ? .38f : .65f);
+                    material.SetFloat("_Metallic", i == 0 ? .65f : 0f);
                     HDMaterial.ValidateMaterial(material);
                     surfaces[i] = new VehicleMaterial(material) { Flags = VehicleMaterialFlags.Unpainted | VehicleMaterialFlags.DisableGrime | VehicleMaterialFlags.CustomShader };
                 }
@@ -142,7 +149,6 @@ namespace SprocketAdvancedAPS.Parts
                     var current = native.Materials;
                     if (surfaces != null)
                     {
-<<<<<<< HEAD
                         var paint = current != null && current.Length > 0 ? current[0] : native.Material;
                         if (paint == null) throw new InvalidOperationException("Native exterior paint unavailable");
                         if (current == null || current.Length != 3 || current[1]?.Pointer != surfaces[0].Pointer || current[2]?.Pointer != surfaces[1].Pointer)
@@ -155,10 +161,6 @@ namespace SprocketAdvancedAPS.Parts
                             component.Vehicle.Materials.Link(paint, component.VehicleTransform);
                             component.Vehicle.MaterialProcessor.Process(paint, component.VehicleTransform);
                         }
-=======
-                        if (current == null || current.Length != 3 || Enumerable.Range(0, 3).Any(i => current[i]?.Pointer != surfaces[i].Pointer))
-                            native.SetMaterials(new Il2CppReferenceArray<VehicleMaterial>(surfaces));
->>>>>>> parent of 52dcc7e (1)
                     }
                     else if (current == null || current.Length != 3)
                     {

@@ -200,6 +200,18 @@ namespace SprocketAdvancedAPS.Systems
             return false;
         }
 
+        internal bool IsInJamEnvelope(Vector3 position)
+        {
+            var direction = Transform.InverseTransformDirection(position - Transform.position);
+            float distance = (position - Transform.position).magnitude;
+            float multiplier = APSCore.ModuleRangeMultiplier(Definition.Id);
+            return Definition.Type != APSType.HardKill && float.IsFinite(distance) &&
+                distance >= Definition.EngagementRangeMin * multiplier &&
+                distance <= Definition.EngagementRangeMax * multiplier &&
+                APSInterceptRules.InCone(direction.x, direction.y, direction.z,
+                    APSInterceptRules.JamHorizontalFOV, APSInterceptRules.JamVerticalFOV);
+        }
+
         public bool CanEngage(ThreatTrack threat) => CanPrepare(threat) && IsThreatInEngagementEnvelope(threat);
 
         public bool IsThreatInEngagementEnvelope(ThreatTrack threat)

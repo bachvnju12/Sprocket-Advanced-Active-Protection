@@ -8,8 +8,9 @@ BepInEx 6 IL2CPP and Sprocket Mod API assemblies available locally.
 - Release build: PASS, 0 warnings, 0 errors.
 - `tests/RegistryCheck.csproj`: PASS; production registry and pure gameplay helpers.
 - `tests/check-parts.ps1`: PASS; ten persistent model IDs, GUIDs, native exterior
-  material reference, winding, UVs, normals, all three surface slots, nondegenerate
-  triangles, <=8,000 triangles/module, thirty previews, icon filled RGB >=150.
+  material reference, winding, UVs, normals, valid material slot indices, nondegenerate
+  triangles, <=8,000 triangles/module and icon filled RGB >=150. Current generator
+  writes front/side/isometric previews for Drozd-1, Shtora-1 and Trophy only.
 - Native paint/factory signatures: inspected through managed metadata only.
 - Installed 43 SAAPS files: SHA256 matched local build/generated sources.
 - `release.ps1` checks each ZIP entry against staging bytes and writes checksums.

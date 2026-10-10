@@ -2,39 +2,41 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $source = [IO.File]::ReadAllText((Join-Path $root 'src\SAAPS\Core\APSCore.cs'))
 $definitions = [IO.File]::ReadAllText((Join-Path $root 'src\SAAPS\Systems\APSDefinitions.cs'))
-$config = @{}; $section = ''
+$actual = @{}
+$section = ''
 foreach ($line in [IO.File]::ReadAllLines((Join-Path $root 'Config\sprocket.advancedaps.cfg'))) {
-    if ($line -match '^\[([^\]]+)\]$') { $section = $Matches[1]; continue }
-    if ($line -match '^([A-Za-z]+)\s*=\s*(\S+)\s*$') {
-        $key = "$section.$($Matches[1])"
-        if ($config.ContainsKey($key)) { throw "Duplicate config key: $key" }
-        $config[$key] = $Matches[2]
+    if ($line -match '^\[([^\]]+)\]$') { $section = $Matches[1] }
+    elseif ($line -match '^([A-Za-z]+)\s*=\s*(\S+)\s*$') {
+        $key = "$section/$($Matches[1])"
+        if ($actual.ContainsKey($key)) { throw "Duplicate config key: $key" }
+        $actual[$key] = $Matches[2]
     } elseif ($line.Trim() -and -not $line.Trim().StartsWith('#')) { throw "Invalid config line: $line" }
 }
 $expected = @{}
-foreach ($binding in [regex]::Matches($source, 'config.Bind\("([^"]+)", "([^"]+)", (true|false|[0-9.]+f|Key\.[A-Za-z0-9]+),')) {
-    $expected["$($binding.Groups[1].Value).$($binding.Groups[2].Value)"] = $binding.Groups[3].Value.Replace('Key.', '').TrimEnd('f')
+foreach ($match in [regex]::Matches($source, 'config.Bind\("([^"]+)", "([^"]+)", (true|false|[0-9.]+f|Key\.[A-Za-z0-9]+),')) {
+    $expected["$($match.Groups[1].Value)/$($match.Groups[2].Value)"] = $match.Groups[3].Value -replace '^Key\.', '' -replace 'f$', ''
 }
-foreach ($block in [regex]::Matches($definitions, 'Id = "([a-z0-9]+)"(?<body>.*?)(?=Id = "|\z)', [Text.RegularExpressions.RegexOptions]::Singleline)) {
-    $id = $block.Groups[1].Value
-    foreach ($key in 'Enabled', 'RangeMultiplier', 'ReactionMultiplier', 'InterceptMultiplier') {
-        $expected["Modules.$id.$key"] = $(if ($key -eq 'Enabled') { 'true' } else { '1' })
-    }
+foreach ($match in [regex]::Matches($definitions, 'Id = "([a-z0-9]+)"(?<body>.*?)(?=Id = "|\z)', [Text.RegularExpressions.RegexOptions]::Singleline)) {
+    $id = $match.Groups[1].Value
+    $prefix = "Modules.$id"
+    $expected["$prefix/Enabled"] = 'true'
+    foreach ($key in 'RangeMultiplier', 'ReactionMultiplier', 'InterceptMultiplier') { $expected["$prefix/$key"] = '1' }
     if ($id -eq 'shtora1') { continue }
-    $body = $block.Groups['body'].Value
-    $min = [double][regex]::Match($body, 'MinEngagementSpeed = ([0-9.]+)f').Groups[1].Value
-    $max = [regex]::Match($body, 'MaxEngagementSpeed = ([0-9.]+)f').Groups[1].Value
-    $expected["Modules.$id.SpeedBasedInterception"] = 'true'
-    $expected["Modules.$id.MinInterceptSpeed"] = [Math]::Min(50, $min).ToString([Globalization.CultureInfo]::InvariantCulture)
-    $expected["Modules.$id.MaxInterceptSpeed"] = $max
+    $body = $match.Groups['body'].Value
+    $minimum = [regex]::Match($body, 'MinEngagementSpeed = ([0-9.]+)f').Groups[1].Value
+    $maximum = [regex]::Match($body, 'MaxEngagementSpeed = ([0-9.]+)f').Groups[1].Value
+    if (-not $minimum -or -not $maximum) { throw "Speed defaults missing: $id" }
+    $expected["$prefix/SpeedBasedInterception"] = 'true'
+    $expected["$prefix/MinInterceptSpeed"] = [Math]::Min(50, [double]::Parse($minimum, [Globalization.CultureInfo]::InvariantCulture)).ToString([Globalization.CultureInfo]::InvariantCulture)
+    $expected["$prefix/MaxInterceptSpeed"] = $maximum
 }
-if ($expected.Count -ne 75 -or $config.Count -ne $expected.Count) { throw 'Expected 75 runtime config keys' }
+if ($expected.Count -ne 75 -or $actual.Count -ne $expected.Count) { throw "Config key count mismatch: expected=$($expected.Count) actual=$($actual.Count)" }
 foreach ($key in $expected.Keys) {
-    $value = $expected[$key]
-    $match = $config.ContainsKey($key) -and $config[$key] -eq $value
-    if ($value -match '^[0-9.]+$' -and $config.ContainsKey($key)) {
-        $match = [double]::Parse($config[$key], [Globalization.CultureInfo]::InvariantCulture) -eq [double]::Parse($value, [Globalization.CultureInfo]::InvariantCulture)
-    }
-    if (-not $match) { throw "Config default mismatch: $key (expected $value)" }
+    if (-not $actual.ContainsKey($key)) { throw "Missing config key: $key" }
+    $wanted = $expected[$key]
+    $value = $actual[$key]
+    if ($wanted -match '^[0-9.]+$') {
+        if ([double]::Parse($value, [Globalization.CultureInfo]::InvariantCulture) -ne [double]::Parse($wanted, [Globalization.CultureInfo]::InvariantCulture)) { throw "Default mismatch: $key = $value; expected $wanted" }
+    } elseif ($value -cne $wanted) { throw "Default mismatch: $key = $value; expected $wanted" }
 }
 Write-Host 'PASS: 75 config template keys match production bindings and speed defaults.'

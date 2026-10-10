@@ -76,6 +76,7 @@ foreach ($file in $files) {
     $model = @($part.components | Where-Object { $_.type -eq "model" })
     if ($model.Count -ne 1 -or @($part.components).Count -ne 1 -or $part.transform -eq $null -or $part.tags -contains "plateStructurePrefab") { throw "APS must use a persistent model component: $($file.Name)" }
     if ($model[0].fileID -ne $part.name) { throw "APS model fileID mismatch: $($file.Name)" }
+    if (@($model[0].info.materialGuids).Count -ne 1 -or $model[0].info.materialGuids[0] -ne '5fd2544ba4a8a7a44b737c00a79f74f3') { throw "Native exterior material missing: $($file.Name)" }
     if ($part.guid -notmatch '^a91bb31a-2cf1-4d0a-8e31-0000000000(0[1-9]|10)$') { throw "APS part GUID missing or invalid: $($file.Name)" }
     if ($model[0].info.v -ne '0.2' -or -not $model[0].info.selectable -or -not $part.transform.dynamic) { throw "Invalid APS model payload: $($file.Name)" }
     $mesh = Get-Content -Raw -LiteralPath (Join-Path $output "meshes\$($part.name).json") | ConvertFrom-Json
@@ -118,6 +119,10 @@ foreach ($file in $files) {
     $image = [Drawing.Bitmap]::new((Join-Path $output "icons\$($part.name).png"))
     try {
         if ($image.Width -ne 256 -or $image.Height -ne 256) { throw "Invalid icon size" }
+        for ($x = 0; $x -lt 256; $x++) { for ($y = 0; $y -lt 256; $y++) {
+            $pixel = $image.GetPixel($x, $y)
+            if ($pixel.A -gt 0 -and [Math]::Min($pixel.R, [Math]::Min($pixel.G, $pixel.B)) -lt 150) { throw "Icon shading below 150: $($part.name)" }
+        } }
         $visible = 0; $transparent = 0; $colored = 0
         for ($x = 0; $x -lt 256; $x += 4) { for ($y = 0; $y -lt 256; $y += 4) {
             $pixel = $image.GetPixel($x, $y)
