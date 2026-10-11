@@ -86,7 +86,7 @@ foreach ($file in $files) {
         if ($visible -lt 100 -or $transparent -lt 100 -or $colored -lt 100) { throw "Blank/white APS icon: $($part.name)" }
     } finally { $image.Dispose() }
     if ($part.name -eq 'saaps_custom') {
-        if ($part.guid -ne 'a91bb31a-2cf1-4d0a-8e31-000000000011' -or $part.tags -notcontains 'plateStructurePrefab' -or @($part.components).Count -ne 1 -or $part.components[0].type -ne 'plateStructurePrefab') { throw 'Invalid editable Custom APS prefab' }
+        if ($part.guid -ne 'a91bb31a-2cf1-4d0a-8e31-000000000011' -or $part.tags -notcontains 'plateStructurePrefab' -or $part.tags -notcontains 'saapsCustomPart' -or $part.tags -contains 'saapsPart' -or $part.tags -contains 'cannon' -or $part.tags -contains 'scope' -or @($part.components).Count -ne 1 -or $part.components[0].type -ne 'plateStructurePrefab') { throw 'Invalid editable Custom APS prefab' }
         $native = $part.components[0].info.mesh
         if ($native.format -ne 'freeform' -or $native.mesh.vertices.Count -ne 24 -or $native.mesh.faces.Count -ne 6) { throw 'Invalid Custom APS starter geometry' }
         continue

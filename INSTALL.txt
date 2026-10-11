@@ -36,8 +36,10 @@ only after testing; metadata fixes do not imply registry approval.
 
 CUSTOM APS (DEVELOPMENT; LIVE ACCEPTANCE PENDING)
 -----------------------------------------------
-1. Place Custom APS. Its marker must be applied to the newly created plate;
-   ordinary plates must not get APS behavior.
+1. Open Firepower > Active Protection Systems; choose Custom APS alongside
+   the ten fixed modules. Custom uses the native editable add-on prefab loader.
+   Menu visibility and placement still require live verification. Its marker
+   must apply only to the newly created plate, never ordinary plates.
 2. Edit shape with native plate vertex/edge/face tools. Local +Z is forward.
    Custom APS inspector changes name, profile, type, ranges, full-angle FOV,
    probabilities, ammo/reload and launch sound.

@@ -13,7 +13,7 @@ namespace SprocketAdvancedAPS.Parts
         private static readonly Dictionary<string, Sprite> Sprites = new(StringComparer.Ordinal);
         private static readonly Dictionary<string, Texture2D> Textures = new(StringComparer.Ordinal);
         private static readonly HashSet<string> Failed = new(StringComparer.Ordinal);
-        private static readonly string[] Ids = { "saaps_drozd1", "saaps_drozd2", "saaps_arena", "saaps_arenam", "saaps_afganit", "saaps_shtora1", "saaps_trophy", "saaps_ironfist", "saaps_amapads", "saaps_zaslin" };
+        private static readonly string[] Ids = { "saaps_drozd1", "saaps_drozd2", "saaps_arena", "saaps_arenam", "saaps_afganit", "saaps_shtora1", "saaps_trophy", "saaps_ironfist", "saaps_amapads", "saaps_zaslin", "saaps_custom" };
 
         private static Sprite? Load(string? key)
         {

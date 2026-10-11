@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="ModuleCheck\**\*.cs" />
+    <Compile Remove="ModuleCheck\**\*.cs;MenuCheck\**\*.cs" />
     <Compile Include="..\src\SAAPS\Parts\APSParts.cs" Link="APSParts.cs" />
     <Compile Include="..\src\SAAPS\Systems\APSInterceptRules.cs" Link="APSInterceptRules.cs" />
     <Compile Include="..\src\SAAPS\Core\APSCustomPreset.cs" Link="APSCustomPreset.cs" />

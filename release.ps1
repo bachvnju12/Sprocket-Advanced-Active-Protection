@@ -12,6 +12,8 @@ $OutputRoot = [IO.Path]::GetFullPath($OutputRoot)
 if ($LASTEXITCODE -ne 0) { throw "Registry regression failed: $LASTEXITCODE" }
 & dotnet run --project (Join-Path $root "tests\ModuleCheck\ModuleCheck.csproj")
 if ($LASTEXITCODE -ne 0) { throw "Module regression failed: $LASTEXITCODE" }
+& dotnet run --project (Join-Path $root "tests\MenuCheck\MenuCheck.csproj")
+if ($LASTEXITCODE -ne 0) { throw "Menu regression failed: $LASTEXITCODE" }
 & (Join-Path $root "build.ps1") -GameRoot $GameRoot -Configuration Release -SkipDeploy
 
 $main = [IO.File]::ReadAllText((Join-Path $root "src\SAAPS\Main.cs"))

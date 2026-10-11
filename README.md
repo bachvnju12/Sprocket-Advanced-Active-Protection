@@ -49,7 +49,7 @@ Hard-kill uses a native shell visual adapter and requests a **40 mm explosion ef
 
 ## Custom APS — development feature
 
-1. Place **Custom APS** from the APS catalog. Only a successfully marked custom plate gets the Custom APS inspector; ordinary hull/plate parts must not become APS.
+1. Open **Firepower > Active Protection Systems** and choose **Custom APS**, alongside the ten fixed APS modules. The menu now routes Custom through the native editable add-on prefab loader, not fixed-model placement. Menu visibility and placement still require live verification. Only a successfully marked custom plate gets the Custom APS inspector; ordinary hull/plate parts must not become APS.
 2. Use native plate vertex/edge/face tools for its shape. Local **+Z** is forward. Open **Custom APS** in the plate inspector to set a Unicode name, starting profile, type, ranges, full-angle FOV, probabilities, ammo/reload and launch sound.
 3. **Save preset** stores shape and settings. Existing files require **Confirm overwrite (backup kept)**; **Save as new** creates a separate ID. Use **Refresh preset list**, **Saved preset**, then **Load selected preset** on another Custom APS part.
 4. Presets live at `BepInEx/config/SprocketAdvancedAPS/CustomAPS/<id>.json`. Vehicle serialization is intended to keep its own settings snapshot and native geometry, independent of the external preset. Quit/restart/load, duplicate and mirror still require live verification.
