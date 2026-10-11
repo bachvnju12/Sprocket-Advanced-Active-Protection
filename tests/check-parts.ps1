@@ -64,13 +64,33 @@ $parts = Join-Path $output "Sprocket_Data\StreamingAssets\Parts"
 $localization = Join-Path $output "Sprocket_Data\StreamingAssets\Localization\en-UK\Parts"
 $files = @(Get-ChildItem $parts -Filter "saaps_*Part.json" -File)
 $locFiles = @(Get-ChildItem $localization -Filter "saaps_*.xml" -File)
-if ($files.Count -ne 10 -or $locFiles.Count -ne 10) { throw "Expected 10 parts and localization files." }
+if ($files.Count -ne 11 -or $locFiles.Count -ne 11) { throw "Expected 10 fixed parts plus Custom APS and localization files." }
 $guids = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 $meshes = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
 foreach ($file in $files) {
     $part = Get-Content -Raw -LiteralPath $file.FullName | ConvertFrom-Json
     if ($part.name -notmatch '^saaps_[a-z0-9]+$') { throw "Invalid part id in $($file.Name)." }
     if (-not $guids.Add($part.guid)) { throw "Duplicate part GUID: $($part.guid)" }
+    if (-not (Test-Path (Join-Path $localization "$($part.name).xml"))) { throw "Missing localization: $($part.name)" }
+    $image = [Drawing.Bitmap]::new((Join-Path $output "icons\$($part.name).png"))
+    try {
+        if ($image.Width -ne 256 -or $image.Height -ne 256) { throw "Invalid icon size" }
+        $visible = 0; $transparent = 0; $colored = 0
+        for ($x = 0; $x -lt 256; $x++) { for ($y = 0; $y -lt 256; $y++) {
+            $pixel = $image.GetPixel($x, $y)
+            if ($pixel.A -gt 0 -and [Math]::Min($pixel.R, [Math]::Min($pixel.G, $pixel.B)) -lt 150) { throw "Icon shading below 150: $($part.name)" }
+            if ($x % 4 -eq 0 -and $y % 4 -eq 0) {
+                if ($pixel.A -eq 0) { $transparent++ } else { $visible++; if ($pixel.R -lt 240 -or $pixel.G -lt 240 -or $pixel.B -lt 240) { $colored++ } }
+            }
+        } }
+        if ($visible -lt 100 -or $transparent -lt 100 -or $colored -lt 100) { throw "Blank/white APS icon: $($part.name)" }
+    } finally { $image.Dispose() }
+    if ($part.name -eq 'saaps_custom') {
+        if ($part.guid -ne 'a91bb31a-2cf1-4d0a-8e31-000000000011' -or $part.tags -notcontains 'plateStructurePrefab' -or @($part.components).Count -ne 1 -or $part.components[0].type -ne 'plateStructurePrefab') { throw 'Invalid editable Custom APS prefab' }
+        $native = $part.components[0].info.mesh
+        if ($native.format -ne 'freeform' -or $native.mesh.vertices.Count -ne 24 -or $native.mesh.faces.Count -ne 6) { throw 'Invalid Custom APS starter geometry' }
+        continue
+    }
     if ($part.tags -notcontains "cannon" -or $part.tags -notcontains "scope" -or $part.tags -notcontains "saapsPart" -or $part.tags -contains "sightsElectronics") { throw "APS menu tags missing or overlap Thermal group: $($file.Name)" }
     if ($part.date -ne '1945.09.03') { throw "APS palette date missing: $($file.Name)" }
     $model = @($part.components | Where-Object { $_.type -eq "model" })
@@ -115,20 +135,10 @@ foreach ($file in $files) {
     if ($triangleCount -gt 8000) { throw "APS triangle budget exceeded: $($file.Name) $triangleCount" }
     $meshHash = $mesh | ConvertTo-Json -Depth 20 -Compress
     if (-not $meshes.Add($meshHash)) { throw "APS parts must use visibly distinct geometry: $($file.Name)" }
-    if (-not (Test-Path (Join-Path $localization "$($part.name).xml"))) { throw "Missing localization: $($part.name)" }
-    $image = [Drawing.Bitmap]::new((Join-Path $output "icons\$($part.name).png"))
-    try {
-        if ($image.Width -ne 256 -or $image.Height -ne 256) { throw "Invalid icon size" }
-        for ($x = 0; $x -lt 256; $x++) { for ($y = 0; $y -lt 256; $y++) {
-            $pixel = $image.GetPixel($x, $y)
-            if ($pixel.A -gt 0 -and [Math]::Min($pixel.R, [Math]::Min($pixel.G, $pixel.B)) -lt 150) { throw "Icon shading below 150: $($part.name)" }
-        } }
-        $visible = 0; $transparent = 0; $colored = 0
-        for ($x = 0; $x -lt 256; $x += 4) { for ($y = 0; $y -lt 256; $y += 4) {
-            $pixel = $image.GetPixel($x, $y)
-            if ($pixel.A -eq 0) { $transparent++ } else { $visible++; if ($pixel.R -lt 240 -or $pixel.G -lt 240 -or $pixel.B -lt 240) { $colored++ } }
-        } }
-        if ($visible -lt 100 -or $transparent -lt 100 -or $colored -lt 100) { throw "Blank/white APS icon: $($part.name)" }
-    } finally { $image.Dispose() }
+    foreach ($view in 'front', 'side', 'isometric') {
+        $preview = [Drawing.Bitmap]::new((Join-Path $output "previews\$($part.name)-$view.png"))
+        try { if ($preview.Width -ne 768 -or $preview.Height -ne 768) { throw "Invalid preview size: $($part.name)-$view" } }
+        finally { $preview.Dispose() }
+    }
 }
-Write-Host "PASS: $($files.Count) persistent APS model parts, distinct meshes, localization entries and non-blank catalog icons (offline schema check, not live game verification)."
+Write-Host "PASS: 10 persistent APS model parts, one editable Custom APS prefab, 11 localization/icons and 30 previews (offline schema check, not live game verification)."

@@ -110,9 +110,18 @@ internal static class RegistryCheck
 
     public static void Main(string[] args)
     {
-        Check(args.Length == 1, "Pass generated Parts directory");
+        Check(args.Length is 1 or 3, "Pass generated Parts directory, optionally --write-audio and output folder");
+        if (args.Length == 3)
+        {
+            Check(args[1] == "--write-audio", "Unknown test argument");
+            Directory.CreateDirectory(args[2]);
+            foreach (string profile in new[] { "shot", "rocket", "launcher" })
+                File.WriteAllBytes(Path.Combine(args[2], profile + ".wav"), WaveCheck.Encode(44100, SprocketAdvancedAPS.Systems.APSWave.Synthesize(profile)));
+        }
         CheckInterceptionRules();
         CheckJamCone();
+        CustomPresetCheck.Run();
+        WaveCheck.Run();
         int count = 0;
         foreach (string path in Directory.GetFiles(args[0], "saaps_*Part.json"))
         {
@@ -120,6 +129,12 @@ internal static class RegistryCheck
             var components = json.RootElement.GetProperty("components");
             Check(components.GetArrayLength() == 1, "Exactly one identity-bearing component per APS");
             var component = components[0];
+            if (json.RootElement.GetProperty("name").GetString() == "saaps_custom")
+            {
+                Check(json.RootElement.GetProperty("guid").GetString() == "a91bb31a-2cf1-4d0a-8e31-000000000011" && component.GetProperty("type").GetString() == "plateStructurePrefab", "Custom APS uses separate editable schema.");
+                Check(APSPartRegistry.GetModuleDefinition(new VehicleComponent { ComponentID = "plateStructurePrefab" }) == null, "Unmarked plate prefab must not become APS.");
+                continue;
+            }
             Check(component.GetProperty("type").GetString() == "model", "Prefab conversion must not discard APS identity");
             string id = component.GetProperty("fileID").GetString()!;
             var definition = APSPartRegistry.GetModuleDefinition(new VehicleComponent { ComponentID = id });

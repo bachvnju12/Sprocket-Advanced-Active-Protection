@@ -50,6 +50,7 @@ namespace SprocketAdvancedAPS.Systems
                 }
             }
             APSVisualManager.Instance?.Update();
+            APSAudioManager.Instance?.Update();
         }
 
         internal void FixedUpdate()
@@ -258,10 +259,9 @@ namespace SprocketAdvancedAPS.Systems
     {
         internal static APSAudioManager? Instance { get; set; }
         private readonly ManualLogSource _log;
-        private AudioClip? _launchClip;
-        private AudioClip? _jamClip;
-        private AudioClip? _radarClip;
-        private AudioClip? _warningClip;
+        private readonly Dictionary<string, AudioClip> _clips = new();
+        private readonly List<(GameObject Object, float Until)> _voices = new();
+        private readonly HashSet<string> _warnings = new();
         private bool _disposed;
 
         internal APSAudioManager(ManualLogSource log)
@@ -271,110 +271,96 @@ namespace SprocketAdvancedAPS.Systems
 
         internal void PlayLaunchSound(APSModuleState module)
         {
-            if (_disposed) return;
-            PlayAtPosition(module.Transform.position, ref _launchClip, "Audio/drozd_launch", 1f, 0.8f);
+            if (_disposed || module.Definition.Type == APSType.SoftKill) return;
+            string profile = module.Definition.LaunchSound switch
+            {
+                "audio/rocket.wav" or "Audio/drozd_launch" or "Audio/drozd2_launch" or "Audio/afganit_launch" => "rocket",
+                "audio/launcher.wav" or "Audio/trophy_launch" => "launcher",
+                _ => "shot"
+            };
+            PlayAtPosition(module.Transform.position, profile, APSCore.ConfigLaunchVolume.Value, UnityEngine.Random.Range(.96f, 1.04f));
         }
 
-        internal void PlayJamSound(APSModuleState module)
+        // No invented firing/radar noises for silent soft-kill emitters.
+        internal void PlayJamSound(APSModuleState module) { }
+        internal void PlayRadarPing(APSModuleState module) { }
+        internal void PlayWarningTone(Vector3 position) { }
+
+        internal void Update()
         {
-            if (_disposed) return;
-            PlayAtPosition(module.Transform.position, ref _jamClip, "Audio/shtora_jam", 0.7f, 0.5f);
+            for (int i = _voices.Count - 1; i >= 0; i--)
+                if (_voices[i].Object == null || Time.unscaledTime >= _voices[i].Until)
+                {
+                    if (_voices[i].Object != null) UnityEngine.Object.Destroy(_voices[i].Object);
+                    _voices.RemoveAt(i);
+                }
         }
 
-        internal void PlayRadarPing(APSModuleState module)
+        private void PlayAtPosition(Vector3 position, string profile, float volume, float pitch)
         {
-            if (_disposed) return;
-            PlayAtPosition(module.Transform.position, ref _radarClip, "Audio/drozd_radar", 0.3f, 0.3f);
-        }
-
-        internal void PlayWarningTone(Vector3 position)
-        {
-            if (_disposed) return;
-            PlayAtPosition(position, ref _warningClip, "Audio/warning", 0.5f, 0.6f);
-        }
-
-        private void PlayAtPosition(Vector3 position, ref AudioClip? clip, string path, float volume, float pitch)
-        {
+            GameObject? go = null;
             try
             {
-                if (clip == null)
+                Update();
+                if (_voices.Count >= 24 || !float.IsFinite(volume) || volume <= 0) return;
+                if (!_clips.TryGetValue(profile, out var clip))
                 {
-                    clip = LoadClip(path);
+                    int rate = 44100;
+                    float[] samples;
+                    try
+                    {
+                        string path = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(typeof(Main).Assembly.Location) ?? "", "SprocketAdvancedAPS", "audio", profile + ".wav");
+                        using var stream = new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.Read);
+                        if (stream.Length > APSWave.MaxBytes) throw new System.IO.InvalidDataException("WAV exceeds 1 MiB.");
+                        using var reader = new System.IO.BinaryReader(stream);
+                        byte[] bytes = reader.ReadBytes(checked((int)stream.Length));
+                        if (stream.ReadByte() != -1) throw new System.IO.InvalidDataException("WAV changed while reading.");
+                        (rate, samples) = APSWave.Decode(bytes);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (_warnings.Add(profile)) _log.LogWarning($"[SAAPS] {profile} WAV unavailable; original synthetic shot fallback: {ex.Message}");
+                        samples = APSWave.Synthesize(profile);
+                    }
+                    clip = AudioClip.Create("SAAPS_" + profile, samples.Length, 1, rate, false);
+                    try
+                    {
+                        if (!clip.SetData(samples, 0)) throw new InvalidOperationException("AudioClip.SetData failed.");
+                        _clips.Add(profile, clip);
+                    }
+                    catch { UnityEngine.Object.Destroy(clip); throw; }
                 }
-
-                if (clip == null)
-                {
-                    // Fallback: generate a simple tone procedurally
-                    clip = GenerateTone(800f, 0.2f, volume);
-                }
-
-                var go = new GameObject("SAAPS_Audio");
+                go = new GameObject("SAAPS_Audio");
                 go.transform.position = position;
                 go.hideFlags = HideFlags.HideAndDontSave;
-
                 var source = go.AddComponent<AudioSource>();
+                source.playOnAwake = false;
                 source.clip = clip;
-                source.volume = volume;
+                source.volume = Mathf.Clamp01(volume);
                 source.pitch = pitch;
                 source.spatialBlend = 1f;
+                source.rolloffMode = AudioRolloffMode.Logarithmic;
+                source.minDistance = 3f;
+                source.maxDistance = 150f;
+                source.dopplerLevel = 0;
                 source.Play();
-
-                UnityEngine.Object.Destroy(go, clip.length + 0.1f);
+                float lifetime = clip.length / pitch + .15f;
+                _voices.Add((go, Time.unscaledTime + lifetime));
+                UnityEngine.Object.Destroy(go, lifetime);
             }
             catch (Exception ex)
             {
-                _log.LogError($"[SAAPS] Audio play failed: {ex.Message}");
+                if (go != null) UnityEngine.Object.Destroy(go);
+                if (_warnings.Add("play")) _log.LogWarning($"[SAAPS] Audio failed; interception unaffected: {ex.Message}");
             }
-        }
-
-        private AudioClip? LoadClip(string path)
-        {
-            // Try to load from mod assets
-            try
-            {
-                var fullPath = System.IO.Path.Combine(
-                    System.IO.Path.GetDirectoryName(typeof(SprocketAdvancedAPS.Main).Assembly.Location) ?? "",
-                    path);
-
-                if (System.IO.File.Exists(fullPath))
-                {
-                    var bytes = System.IO.File.ReadAllBytes(fullPath);
-                    return AudioClip.Create(path, 44100, 1, 44100, false);
-                }
-            }
-            catch
-            {
-                // Fall through to procedural
-            }
-            return null;
-        }
-
-        private AudioClip GenerateTone(float frequency, float duration, float volume)
-        {
-            int sampleRate = 44100;
-            int samples = (int)(sampleRate * duration);
-            float[] data = new float[samples];
-
-            for (int i = 0; i < samples; i++)
-            {
-                float t = (float)i / sampleRate;
-                data[i] = Mathf.Sin(2f * Mathf.PI * frequency * t) * volume;
-            }
-
-            var clip = AudioClip.Create("SAAPS_Tone", samples, 1, sampleRate, false);
-            clip.SetData(data, 0);
-            return clip;
         }
 
         public void Dispose()
         {
             _disposed = true;
-            foreach (var clip in new[] { _launchClip, _jamClip, _radarClip, _warningClip })
-                if (clip != null) UnityEngine.Object.Destroy(clip);
-            _launchClip = null;
-            _jamClip = null;
-            _radarClip = null;
-            _warningClip = null;
+            foreach (var voice in _voices) if (voice.Object != null) UnityEngine.Object.Destroy(voice.Object);
+            foreach (var clip in _clips.Values) if (clip != null) UnityEngine.Object.Destroy(clip);
+            _voices.Clear(); _clips.Clear(); _warnings.Clear();
             Instance = null;
         }
     }

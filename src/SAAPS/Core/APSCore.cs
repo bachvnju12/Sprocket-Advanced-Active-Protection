@@ -20,6 +20,7 @@ namespace SprocketAdvancedAPS.Core
         internal static ConfigEntry<bool> ConfigDebugMode { get; private set; } = null!;
         internal static ConfigEntry<bool> ConfigShowHUD { get; private set; } = null!;
         internal static ConfigEntry<bool> ConfigPerformanceLog { get; private set; } = null!;
+        internal static ConfigEntry<float> ConfigLaunchVolume { get; private set; } = null!;
         internal static ConfigEntry<float> ConfigGlobalDetectionMultiplier { get; private set; } = null!;
         internal static ConfigEntry<float> ConfigGlobalReactionMultiplier { get; private set; } = null!;
         internal static ConfigEntry<Key> ConfigToggleHUD { get; private set; } = null!;
@@ -33,10 +34,10 @@ namespace SprocketAdvancedAPS.Core
         private static readonly Dictionary<string, ConfigEntry<float>> ModuleMaxSpeed = new(StringComparer.OrdinalIgnoreCase);
 
         internal static bool SpeedBasedInterception(APSDefinition definition) => definition.Type != APSType.SoftKill &&
-            (!ModuleSpeedBased.TryGetValue(definition.Id, out var entry) || entry.Value);
+            (definition.CustomSettings?.SpeedBased ?? (!ModuleSpeedBased.TryGetValue(definition.Id, out var entry) || entry.Value));
         internal static float MinInterceptSpeed(APSDefinition definition)
         {
-            float fallback = Math.Min(50f, definition.MinEngagementSpeed);
+            float fallback = definition.CustomSettings != null ? definition.MinEngagementSpeed : Math.Min(50f, definition.MinEngagementSpeed);
             float value = ModuleMinSpeed.TryGetValue(definition.Id, out var entry) ? entry.Value : fallback;
             return float.IsFinite(value) && value >= 0f && value <= MaxInterceptSpeed(definition) ? value : Math.Min(fallback, MaxInterceptSpeed(definition));
         }
@@ -64,6 +65,8 @@ namespace SprocketAdvancedAPS.Core
             ConfigEnabled = config.Bind("General", "Enabled", true, "Enable the Advanced APS system globally.");
             ConfigDebugMode = config.Bind("General", "DebugMode", false, "Enable debug logging and visualizations.");
             ConfigShowHUD = config.Bind("General", "ShowHUD", true, "Show APS HUD during gameplay.");
+            ConfigLaunchVolume = config.Bind("Audio", "LaunchVolume", .8f, "Hard-kill launch volume, 0..1; 0 mutes. Original synthetic SFX, not real APS recordings.");
+            ConfigLaunchVolume.Value = float.IsFinite(ConfigLaunchVolume.Value) ? Mathf.Clamp01(ConfigLaunchVolume.Value) : .8f;
             ConfigPerformanceLog = config.Bind("General", "PerformanceLog", false, "Report physics core time and native projectile snapshot reads every 5 seconds.");
             ConfigGlobalDetectionMultiplier = config.Bind("Balance", "GlobalDetectionMultiplier", 1.0f, "Global multiplier for all APS detection ranges.");
             ConfigGlobalReactionMultiplier = config.Bind("Balance", "GlobalReactionMultiplier", 1.0f, "Global multiplier for all APS reaction times (lower = faster).");
@@ -236,11 +239,21 @@ namespace SprocketAdvancedAPS.Core
         {
             var components = SprocketAdvancedAPS.APSPartHooks.SelectedComponents(Vehicle).ToArray();
             for (int i = Modules.Count - 1; i >= 0; i--)
-                if (!components.Any(c => c.Pointer == Modules[i].Component.Pointer))
+                if (!components.Any(c => c.Pointer == Modules[i].Component.Pointer &&
+                    ReferenceEquals(SprocketAdvancedAPS.Parts.APSPartRegistry.GetModuleDefinition(c), Modules[i].Definition)))
                 {
-                    foreach (var track in Modules[i].AssignedThreats) { track.IsEngaged = false; track.EngagingModule = null; }
-                    Modules[i].Dispose();
-                    Modules.RemoveAt(i);
+                    var old = Modules[i];
+                    foreach (var track in old.AssignedThreats) { track.IsEngaged = false; track.EngagingModule = null; }
+                    var component = components.FirstOrDefault(c => c.Pointer == old.Component.Pointer);
+                    var definition = component == null ? null : SprocketAdvancedAPS.Parts.APSPartRegistry.GetModuleDefinition(component);
+                    if (component != null && definition != null)
+                    {
+                        var replacement = new APSModuleState(this, component, definition);
+                        replacement.KeepRuntimeState(old);
+                        Modules[i] = replacement;
+                    }
+                    else Modules.RemoveAt(i);
+                    old.Dispose();
                 }
             foreach (var component in components)
                 if (!Modules.Any(m => m.Component.Pointer == component.Pointer))

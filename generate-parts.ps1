@@ -11,7 +11,6 @@ $previewsDir = Join-Path $OutputRoot "previews"
 $texturesDir = Join-Path $OutputRoot "textures"
 $atlasPath = Join-Path $texturesDir "saaps_surfaces.png"
 New-Item -ItemType Directory -Force -Path $partsDir, $localizationDir, $meshesDir, $iconsDir, $previewsDir, $texturesDir | Out-Null
-$referenceShapes = @("drozd1", "shtora1", "trophy")
 Add-Type -AssemblyName System.Drawing
 
 $systems = @(
@@ -207,12 +206,13 @@ function Add-TubeCluster([System.Collections.Generic.List[double]]$Vertices, [Sy
     }
 }
 
-# Three photographed equipment assemblies; other layouts remain placeholders.
+# Seven photo-referenced exterior assemblies; Drozd-2, Arena-M and Zaslin remain placeholders.
 # Dimensions are estimates, not measured hardware specifications.
 function New-SystemMesh($Shape) {
     $vertices = [System.Collections.Generic.List[double]]::new()
     $faces = [System.Collections.Generic.List[object]]::new()
     switch ($Shape) {
+        "custom" { Add-ChamferBox $vertices $faces 0 0 -0.10 0.25 0.15 0.20 0.01 }
         # One cheek module from the T-55AD photo: four cylindrical canisters in paired
         # banks on a mounting cradle. +Z is the exposed front; no invented turret base.
         "drozd1" {
@@ -224,13 +224,17 @@ function New-SystemMesh($Shape) {
                     Add-Tube $vertices $faces $x ($y + 0.009) 0.13 0.082 0.014 24 0 (-0.08)
                 }
             }
-            Add-ChamferBox $vertices $faces 0 0.205 -0.035 0.196 0.068 0.18 0.01
-            Add-Box $vertices $faces 0 0.271 0.055 0.208 0.01 0.20
+            # Upper radar housing has a sloping roof and overhanging lip in T-55AD photo.
+            Add-ChamferBox $vertices $faces 0 0.205 -0.035 0.196 0.052 0.18 0.01
+            Add-RotatedBox $vertices $faces 0 0.254 0.055 0.208 0.017 0.20 (-0.12) 0
+            foreach ($x in -0.043, 0.043) {
+                Add-Tube $vertices $faces $x 0.15 0.237 0.049 0.012 32 0 (-0.08) 0.004 1
+            }
             foreach ($x in -0.078, 0.078) {
                 Add-Box $vertices $faces $x 0 -0.02 0.025 0.026 0.17
             }
         }
-        # Drozd-2: same cheek layout but denser, wider arc and a larger radar.
+        # Placeholder: no verified Drozd-2 variant photo; not a hardware reconstruction.
         "drozd2" {
             Add-Drum $vertices $faces 0 0.03 0 0.27 0.06 12
             Add-TubeCluster $vertices $faces 0.085 0.075 0 3 2 0.055 34 ([Math]::PI / 2) 0.05 0.12
@@ -238,15 +242,18 @@ function New-SystemMesh($Shape) {
             Add-Drum $vertices $faces 0 0.09 -0.02 0.15 0.06 10
             Add-Box $vertices $faces 0 0.08 -0.105 0.17 0.10 0.06
         }
-        # Arena: interceptor panels sit around the lower margin of the turret ring, Doppler
-        # radar on the roof.
+        # T-80UM-1 roof radar mast only; do not miniaturize the whole turret installation.
         "arena" {
-            Add-Drum $vertices $faces 0 0.02 0 0.29 0.09 12
-            Add-LauncherRing $vertices $faces 0.163 0.05 20 6 0.038 0.06
-            Add-Drum $vertices $faces 0 0.11 0 0.11 0.05 10
-            Add-RotatedBox $vertices $faces 0 0.16 -0.03 0.13 0.025 0.10 (25 * [Math]::PI / 180) ([Math]::PI)
+            Add-Box $vertices $faces 0 0 0 0.155 0.025 0.15
+            foreach ($x in -0.051, 0.051) { Add-Box $vertices $faces $x 0.025 0 0.022 0.087 0.10 1 }
+            Add-Drum $vertices $faces 0 0.106 0 0.144 0.037 32
+            Add-ChamferBox $vertices $faces 0 0.139 -0.068 0.166 0.18 0.136 0.026
+            foreach ($x in -0.076, 0.076) {
+                Add-Box $vertices $faces $x 0.139 0.002 0.024 0.18 0.018
+            }
+            Add-Box $vertices $faces 0 0.319 0 0.176 0.016 0.147
         }
-        # Arena-M: modular box tower inside the same panel ring, with a raked roof radar.
+        # Placeholder: no verified Arena-M variant photo; legacy panel-ring layout.
         "arenam" {
             Add-Drum $vertices $faces 0 0.02 0 0.27 0.08 12
             Add-LauncherRing $vertices $faces 0.152 0.045 16 6 0.04 0.065
@@ -259,23 +266,18 @@ function New-SystemMesh($Shape) {
             Add-Drum $vertices $faces 0 0.19 0 0.09 0.05 8
             Add-RotatedBox $vertices $faces 0 0.10 -0.07 0.16 0.028 0.11 (30 * [Math]::PI / 180) ([Math]::PI)
         }
-        # Afganit: hybrid, so the Shtora cheek emitters plus a large raked radar panel.
+        # T-14 exterior photo: one low bank of five capped, splayed hard-kill canisters.
+        # No Shtora emitter or fictitious radar disc; hidden internals omitted.
         "afganit" {
-            Add-Drum $vertices $faces 0 0.03 0 0.27 0.07 12
-            Add-Box $vertices $faces -0.115 0.09 0.01 0.055 0.14 0.15
-            Add-Box $vertices $faces 0.115 0.09 0.01 0.055 0.14 0.15
-            Add-Tube $vertices $faces -0.14 0.155 0.05 0.085 0.03 10 (-1.12)
-            Add-Tube $vertices $faces 0.14 0.155 0.05 0.085 0.03 10 1.12
-            Add-Tube $vertices $faces -0.165 0.155 0.07 0.055 0.02 10 (-1.12)
-            Add-Tube $vertices $faces 0.165 0.155 0.07 0.055 0.02 10 1.12
-            Add-RotatedBox $vertices $faces 0 0.10 -0.06 0.20 0.03 0.13 (38 * [Math]::PI / 180) ([Math]::PI)
-            Add-Drum $vertices $faces 0 0.17 0.02 0.08 0.05 8
-            foreach ($sign in -1, 1) {
-                Add-ChamferBox $vertices $faces ($sign * 0.113) 0.091 0.087 0.059 0.10 0.012 0.008
-                Add-Tube $vertices $faces ($sign * 0.184) 0.155 0.079 0.05 0.009 32 ($sign * 1.12) 0 0.003 2
-                Add-Box $vertices $faces ($sign * 0.09) 0.045 0.015 0.022 0.07 0.10 1
+            Add-ChamferBox $vertices $faces 0 0 -0.10 0.43 0.058 0.18 0.012
+            for ($i = 0; $i -lt 5; $i++) {
+                $x = ($i - 2) * 0.083; $yaw = ($i - 2) * 0.11
+                Add-Tube $vertices $faces $x 0.083 -0.083 0.072 0.245 40 $yaw 0
+                Add-Tube $vertices $faces $x 0.083 -0.073 0.078 0.019 40 $yaw 0
+                Add-Tube $vertices $faces ($x + [Math]::Sin($yaw) * 0.226) 0.083 (-0.083 + [Math]::Cos($yaw) * 0.226) 0.074 0.019 40 $yaw 0
+                Add-Box $vertices $faces $x 0.011 -0.04 0.018 0.028 0.14 1
             }
-            Add-ChamferBox $vertices $faces 0 0.112 -0.083 0.146 0.076 0.011 0.012 2
+            Add-Box $vertices $faces 0 0.111 -0.11 0.43 0.018 0.06
         }
         # Single T-90 emitter housing: circular front, finned body, protective handle,
         # and low mounting feet. Geometry details are selective, not every cooling pin.
@@ -284,11 +286,12 @@ function New-SystemMesh($Shape) {
             Add-Box $vertices $faces 0.105 0 0 0.07 0.035 0.19
             Add-ChamferBox $vertices $faces 0 0.035 -0.10 0.25 0.235 0.175 0.027
             Add-ChamferBox $vertices $faces 0 0.037 0.075 0.255 0.232 0.019 0.034
-            Add-Tube $vertices $faces 0 0.154 0.093 0.205 0.016 48 0 0 0.007 2
+            # Reference shows the painted protective cover, not an exposed red/black lens.
+            Add-Tube $vertices $faces 0 0.154 0.093 0.205 0.016 48 0
             foreach ($sign in -1, 1) {
                 $x = $sign * 0.133
                 for ($i = 0; $i -lt 12; $i++) {
-                    Add-Box $vertices $faces $x (0.053 + $i * 0.017) 0.072 0.029 0.006 0.046
+                    Add-ChamferBox $vertices $faces $x (0.053 + $i * 0.017) 0.046 0.043 0.006 0.064 0.002
                 }
                 Add-Box $vertices $faces $x 0.032 -0.075 0.026 0.272 0.022
                 for ($row = 0; $row -lt 6; $row++) {
@@ -302,7 +305,17 @@ function New-SystemMesh($Shape) {
                     Add-Drum $vertices $faces (-0.091 + $column * 0.026) 0.27 (-0.066 + $row * 0.027) 0.007 0.017 8
                 }
             }
-            Add-Box $vertices $faces 0 0.294 -0.075 0.276 0.022 0.022
+            # Swept protective bow and cheek pivots visible in the close-up.
+            $bow = @(@(-0.15,0.10), @(-0.15,0.27), @(-0.13,0.315), @(-0.095,0.33), @(0.095,0.33), @(0.13,0.315), @(0.15,0.27), @(0.15,0.10))
+            for ($i = 0; $i -lt $bow.Count - 1; $i++) {
+                $dx = $bow[$i + 1][0] - $bow[$i][0]; $dy = $bow[$i + 1][1] - $bow[$i][1]
+                $length = [Math]::Sqrt($dx * $dx + $dy * $dy)
+                Add-Tube $vertices $faces $bow[$i][0] $bow[$i][1] -0.077 0.025 $length 12 ([Math]::PI / 2) (-[Math]::Atan2($dy, [Math]::Abs($dx)))
+            }
+            foreach ($sign in -1, 1) {
+                Add-Tube $vertices $faces ($sign * 0.134) 0.074 -0.077 0.063 0.026 32 ($sign * [Math]::PI / 2)
+                Add-Tube $vertices $faces ($sign * 0.160) 0.074 -0.077 0.034 0.007 24 ($sign * [Math]::PI / 2)
+            }
             foreach ($x in -0.106, 0.106) {
                 foreach ($y in 0.067, 0.238) {
                     Add-Tube $vertices $faces $x $y 0.094 0.014 0.007 12 0
@@ -315,7 +328,7 @@ function New-SystemMesh($Shape) {
             Add-Box $vertices $faces -0.10 0 -0.03 0.05 0.16 0.075
             Add-Box $vertices $faces 0.10 0 -0.03 0.05 0.16 0.075
             Add-ChamferBox $vertices $faces 0 0.025 0 0.34 0.15 0.042 0.036
-            Add-ChamferBox $vertices $faces 0 0.033 0.043 0.322 0.134 0.008 0.029 2
+            Add-ChamferBox $vertices $faces 0 0.033 0.043 0.322 0.134 0.008 0.029
             Add-Box $vertices $faces 0.082 0.16 -0.058 0.075 0.045 0.115
             Add-Drum $vertices $faces 0.082 0.205 -0.058 0.073 0.025 24
             Add-ChamferBox $vertices $faces 0.082 0.23 -0.079 0.091 0.15 0.05 0.008
@@ -327,29 +340,35 @@ function New-SystemMesh($Shape) {
                 Add-Tube $vertices $faces $x 0.117 0.051 0.012 0.005 12 0
             }
         }
-        # Iron Fist: same Israeli generation as Trophy but launcher-led, so a tight tube block
-        # on a roof pedestal under a small radar panel.
+        # Iron Fist demonstration unit: two vertically stacked tubes on a rotary yoke.
         "ironfist" {
-            Add-Drum $vertices $faces 0 0.03 0 0.25 0.06 12
-            Add-Box $vertices $faces 0 0.09 0 0.19 0.10 0.17
-            Add-TubeCluster $vertices $faces 0 0.19 0.02 2 2 0.058 26 0 0.05 0.09
-            Add-Drum $vertices $faces 0 0.12 -0.11 0.11 0.035 8
-            Add-Box $vertices $faces 0 0.19 -0.09 0.07 0.04 0.05
+            Add-Drum $vertices $faces 0 0 0 0.21 0.024 40
+            foreach ($x in -0.074, 0.074) { Add-Box $vertices $faces $x 0.024 0 0.016 0.053 0.15 1 }
+            Add-Drum $vertices $faces 0 0.075 0 0.22 0.017 40
+            Add-ChamferBox $vertices $faces 0 0.092 -0.091 0.124 0.222 0.133 0.029
+            foreach ($y in 0.139, 0.251) {
+                Add-Tube $vertices $faces 0 $y 0.018 0.087 0.23 40 0 0 0.008
+                Add-Tube $vertices $faces 0 $y 0.226 0.093 0.022 40 0 0 0.009
+            }
+            foreach ($sign in -1, 1) {
+                Add-Tube $vertices $faces ($sign * 0.065) 0.152 -0.036 0.10 0.012 40 ($sign * [Math]::PI / 2)
+            }
         }
-        # AMAP-ADS: sensor and weapon modules arranged around the vehicle, StrikeShield between
-        # the armour layers. Reads as a flat frame with corner sensors, not a stacked tower.
+        # StrikeShield Lynx exterior tile: paired recessed vertical apertures, not a drum array.
         "amapads" {
-            Add-Box $vertices $faces -0.13 0.03 0 0.05 0.07 0.30
-            Add-Box $vertices $faces 0.13 0.03 0 0.05 0.07 0.30
-            Add-Box $vertices $faces 0 0.03 0.10 0.22 0.07 0.05
-            Add-Box $vertices $faces 0 0.03 -0.10 0.22 0.07 0.05
-            Add-Drum $vertices $faces -0.13 0.10 0.11 0.07 0.06 8
-            Add-Drum $vertices $faces 0.13 0.10 0.11 0.07 0.06 8
-            Add-Drum $vertices $faces -0.13 0.10 -0.11 0.07 0.06 8
-            Add-Drum $vertices $faces 0.13 0.10 -0.11 0.07 0.06 8
-            Add-Drum $vertices $faces 0 0.10 0 0.12 0.035 8
+            Add-ChamferBox $vertices $faces 0 0 -0.034 0.31 0.285 0.036 0.014
+            foreach ($x in -0.076, 0.076) {
+                Add-ChamferBox $vertices $faces $x 0.028 0.003 0.054 0.227 0.018 0.012 1
+                Add-Box $vertices $faces $x 0.041 0.021 0.034 0.20 0.003 2
+                Add-Box $vertices $faces ($x - 0.026) 0.028 0.023 0.012 0.227 0.018
+                Add-Box $vertices $faces ($x + 0.026) 0.028 0.023 0.012 0.227 0.018
+                foreach ($y in 0.025, 0.262) { Add-Tube $vertices $faces $x $y 0.004 0.014 0.008 12 0 }
+            }
+            foreach ($x in -0.138, 0.138) {
+                foreach ($y in 0.018, 0.267) { Add-Tube $vertices $faces $x $y 0.002 0.024 0.006 20 0 }
+            }
         }
-        # Zaslin: external pods hung off a low base, no tubes and no roof radar.
+        # Placeholder: no verified Zaslin variant photo; legacy exterior pod layout.
         "zaslin" {
             Add-Drum $vertices $faces 0 0.03 0 0.28 0.06 12
             Add-Drum $vertices $faces -0.125 0.09 0 0.10 0.13 8
@@ -551,11 +570,9 @@ foreach ($system in $systems) {
     $mesh = New-SystemMesh $system.Shape
     $mesh | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $meshesDir "$name.json") -Encoding utf8
     Write-Icon $mesh (Join-Path $iconsDir "$name.png")
-    if ($system.Shape -in $referenceShapes) {
-        Write-Icon $mesh (Join-Path $previewsDir "$name-front.png") 768 0 0
-        Write-Icon $mesh (Join-Path $previewsDir "$name-side.png") 768 ([Math]::PI / 2) 0
-        Write-Icon $mesh (Join-Path $previewsDir "$name-isometric.png") 768
-    }
+    Write-Icon $mesh (Join-Path $previewsDir "$name-front.png") 768 0 0
+    Write-Icon $mesh (Join-Path $previewsDir "$name-side.png") 768 ([Math]::PI / 2) 0
+    Write-Icon $mesh (Join-Path $previewsDir "$name-isometric.png") 768
     $part = [ordered]@{
         v = "0.2"
         guid = $system.Guid
@@ -586,4 +603,18 @@ foreach ($system in $systems) {
     [System.IO.File]::WriteAllText((Join-Path $localizationDir "$name.xml"), $xml, [System.Text.Encoding]::Unicode)
 }
 
-Write-Host "Generated $($systems.Count) APS model parts and meshes: $OutputRoot"
+# Native editable prefab: runtime marks only structures created while loading this exact catalog GUID.
+$customMesh = New-BoxMesh 0.125 0.10 0.15
+$customPart = [ordered]@{
+    v = "0.0"; guid = "a91bb31a-2cf1-4d0a-8e31-000000000011"; name = "saaps_custom"
+    tags = @("plateStructurePrefab", "saapsCustomPart"); transform = $null
+    components = @([ordered]@{ fileID = "plateStructurePrefab"; type = "plateStructurePrefab"; info = [ordered]@{
+        v = "0.0"; mesh = [ordered]@{ v = "0.2"; name = "Custom APS"; smoothAngle = 0; gridSize = 1; format = "freeform"
+            mesh = [ordered]@{ majorVersion = 0; minorVersion = 3; vertices = $customMesh.vertices; faces = $customMesh.faces }
+        }
+    } })
+}
+$customPart | ConvertTo-Json -Depth 14 | Set-Content -LiteralPath (Join-Path $partsDir "saaps_customPart.json") -Encoding utf8
+Write-Icon (New-SystemMesh "custom") (Join-Path $iconsDir "saaps_custom.png")
+[IO.File]::WriteAllText((Join-Path $localizationDir "saaps_custom.xml"), '<?xml version="1.0" encoding="utf-16"?><Part><name>Custom APS</name><description>Editable APS add-on. Use plate tools to shape it, then Custom APS inspector to name, configure, save and load presets.</description></Part>', [Text.Encoding]::Unicode)
+Write-Host "Generated $($systems.Count) APS models and one editable Custom APS: $OutputRoot"

@@ -53,15 +53,6 @@ namespace SprocketAdvancedAPS.Systems
             return false;
         }
 
-        /// <summary>
-        /// Register a custom player-created preset.
-        /// </summary>
-        internal static void RegisterCustomPreset(APSDefinition definition)
-        {
-            if (definition == null || string.IsNullOrEmpty(definition.Id)) return;
-            _definitions[definition.Id] = definition;
-        }
-
         // --- DROZD-1 (Soviet, hard-kill) ---
         private static void RegisterDrozd1()
         {

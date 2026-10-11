@@ -22,10 +22,10 @@ using SerializationInfo = Il2CppSystem.Runtime.Serialization.SerializationInfo;
 [assembly: AssemblyMetadata("Sprocket.Mod.Id", "sprocket.advancedaps")]
 [assembly: AssemblyMetadata("Sprocket.Mod.DisplayName", "Sprocket Advanced APS")]
 [assembly: AssemblyMetadata("Sprocket.Mod.Description", "APS gameplay simulation for Sprocket")]
-[assembly: AssemblyMetadata("Sprocket.Mod.Authors", "SAAPS Team")]
-[assembly: AssemblyMetadata("Sprocket.Mod.Repository", "SAAPS/SprocketAdvancedAPS")]
+[assembly: AssemblyMetadata("Sprocket.Mod.Authors", "bachvnju12")]
+[assembly: AssemblyMetadata("Sprocket.Mod.Repository", "bachvnju12/Sprocket-Advanced-Active-Protection")]
 [assembly: AssemblyMetadata("Sprocket.Mod.Category", "gameplay")]
-[assembly: AssemblyMetadata("Sprocket.Mod.License", "GPL-3.0-only")]
+[assembly: AssemblyMetadata("Sprocket.Mod.License", "MIT")]
 
 namespace SprocketAdvancedAPS
 {
@@ -52,6 +52,9 @@ namespace SprocketAdvancedAPS
                 new APSPartRegistry(Log);
                 _harmony = new Harmony(PluginGuid);
                 _harmony.PatchAll(typeof(APSPartHooks));
+                APSCustomRuntime.CheckNativeJsonRoundTrip();
+                _harmony.PatchAll(typeof(APSCustomRuntime));
+                _harmony.PatchAll(typeof(APSCustomInspector));
                 _harmony.PatchAll(typeof(APSModelAssets));
                 _harmony.PatchAll(typeof(APSPartsMenu));
                 _harmony.PatchAll(typeof(APSPartIcons));
@@ -62,8 +65,15 @@ namespace SprocketAdvancedAPS
             catch (Exception ex)
             {
                 _harmony?.UnpatchSelf();
+                APSDriver.Instance?.Dispose();
                 APSSystems.Instance?.Shutdown();
                 APSCore.Instance?.Shutdown();
+                APSPartRegistry.Instance?.Shutdown();
+                APSPartIcons.Cleanup();
+                APSModelAssets.Cleanup();
+                APSCustomRuntime.Clear();
+                APSCustomInspector.Clear();
+                ReleaseModMetadata();
                 Log.LogError("[SAAPS] APS runtime disabled after initialization failure: " + ex);
             }
         }
@@ -77,6 +87,8 @@ namespace SprocketAdvancedAPS
             APSPartRegistry.Instance?.Shutdown();
             APSPartIcons.Cleanup();
             APSModelAssets.Cleanup();
+            APSCustomRuntime.Clear();
+            APSCustomInspector.Clear();
             ReleaseModMetadata();
             ModLog = null!;
             Instance = null!;
@@ -117,7 +129,7 @@ namespace SprocketAdvancedAPS
                     var component = obj.Components[j];
                     if (component != null && component.Vehicle?.Pointer == vehicle.Pointer && APSPartRegistry.IsAPSComponent(component))
                     {
-                        APSModelAssets.Apply(component);
+                        if (APSPartRegistry.GetModuleDefinition(component.ComponentID) != null) APSModelAssets.Apply(component);
                         yield return component;
                     }
                 }

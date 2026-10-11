@@ -49,6 +49,9 @@ namespace SprocketAdvancedAPS.Systems
         public string Country { get; init; } = "";
         public int YearIntroduced { get; init; } = 0;
         public APSType Type { get; init; } = APSType.HardKill;
+        internal APSCustomSettings? CustomSettings { get; init; }
+        public float JamFOVHorizontal { get; init; } = APSInterceptRules.JamHorizontalFOV;
+        public float JamFOVVertical { get; init; } = APSInterceptRules.JamVerticalFOV;
         
         // Detection capabilities
         public float DetectionRange { get; init; } = 50f;
@@ -119,6 +122,7 @@ namespace SprocketAdvancedAPS.Systems
         public int RemainingCountermeasures;
         public float LastFireTime;
         public float CooldownRemaining;
+        public float ReloadRemaining;
         public bool IsEnabled = true;
         public bool IsOperational = true;
         public bool IsDestroyed = false;
@@ -141,6 +145,7 @@ namespace SprocketAdvancedAPS.Systems
             VehicleState = vehicleState;
             Transform = component.transform;
             
+            IsEnabled = definition.CustomSettings?.Enabled ?? true;
             RemainingCountermeasures = definition.CountermeasureCapacity;
             MaxHealth = 1f;
             Health = 1f;
@@ -195,8 +200,14 @@ namespace SprocketAdvancedAPS.Systems
                 distance > Definition.DetectionRange * APSCore.ConfigGlobalDetectionMultiplier.Value * rangeMultiplier) return false;
             if (!APSInterceptRules.Approaching(toModule.sqrMagnitude, Vector3.Dot(toModule, threat.RelativeVelocity),
                 threat.RelativeVelocity.sqrMagnitude, Definition.EngagementRangeMax * rangeMultiplier)) return false;
-            foreach (var sector in CoverageSectors)
-                if (sector.ContainsDirection(threat.Position)) return true;
+            if (Definition.Type != APSType.HardKill)
+            {
+                var direction = Transform.InverseTransformDirection(threat.Position - Transform.position);
+                if (APSInterceptRules.InCone(direction.x, direction.y, direction.z, Definition.JamFOVHorizontal, Definition.JamFOVVertical)) return true;
+            }
+            if (Definition.Type != APSType.SoftKill)
+                foreach (var sector in CoverageSectors)
+                    if (sector.ContainsDirection(threat.Position)) return true;
             return false;
         }
 
@@ -209,10 +220,12 @@ namespace SprocketAdvancedAPS.Systems
                 distance >= Definition.EngagementRangeMin * multiplier &&
                 distance <= Definition.EngagementRangeMax * multiplier &&
                 APSInterceptRules.InCone(direction.x, direction.y, direction.z,
-                    APSInterceptRules.JamHorizontalFOV, APSInterceptRules.JamVerticalFOV);
+                    Definition.JamFOVHorizontal, Definition.JamFOVVertical);
         }
 
-        public bool CanEngage(ThreatTrack threat) => CanPrepare(threat) && IsThreatInEngagementEnvelope(threat);
+        public bool CanEngage(ThreatTrack threat) => Definition.Type != APSType.SoftKill && CanPrepare(threat) && IsThreatInEngagementEnvelope(threat);
+        internal bool IsInDispatchEnvelope(ThreatTrack threat) =>
+            (Definition.Type != APSType.SoftKill && IsThreatInEngagementEnvelope(threat)) || IsInJamEnvelope(threat.Position);
 
         public bool IsThreatInEngagementEnvelope(ThreatTrack threat)
         {
@@ -253,7 +266,7 @@ namespace SprocketAdvancedAPS.Systems
                 _ => 0.50f
                 };
             float configured = Definition.InterceptProbability.TryGetValue(threatClass, out var value) ? value : fallback;
-            float probability = APSInterceptRules.Probability(configured, fallback, APSCore.SpeedBasedInterception(Definition));
+            float probability = Definition.CustomSettings != null ? configured : APSInterceptRules.Probability(configured, fallback, APSCore.SpeedBasedInterception(Definition));
             return Mathf.Clamp01(probability * APSCore.ModuleInterceptMultiplier(Definition.Id));
         }
 
@@ -275,23 +288,43 @@ namespace SprocketAdvancedAPS.Systems
             return 0f;
         }
         
+        internal void KeepRuntimeState(APSModuleState old)
+        {
+            RemainingCountermeasures = Math.Min(old.RemainingCountermeasures, Definition.CountermeasureCapacity);
+            LastFireTime = old.LastFireTime;
+            CooldownRemaining = old.CooldownRemaining;
+            ReloadRemaining = old.ReloadRemaining;
+            Health = old.Health;
+            MaxHealth = old.MaxHealth;
+            IsDestroyed = old.IsDestroyed;
+            IsOperational = old.IsOperational;
+        }
+
         public void ConsumeCountermeasure()
         {
             RemainingCountermeasures = Math.Max(0, RemainingCountermeasures - 1);
             LastFireTime = Time.time;
             CooldownRemaining = Definition.CooldownBetweenShots;
+            if (RemainingCountermeasures == 0 && Definition.ReloadTime > 0) ReloadRemaining = Definition.ReloadTime;
         }
         
         public void Update(float deltaTime)
         {
-            if (CooldownRemaining > 0)
-                CooldownRemaining -= deltaTime;
-            
-            if (Health <= 0 && !IsDestroyed)
+            if (Health <= 0)
             {
                 IsDestroyed = true;
                 IsOperational = false;
             }
+            if (!float.IsFinite(deltaTime) || deltaTime <= 0) return;
+            if (CooldownRemaining > 0)
+                CooldownRemaining -= deltaTime;
+            if (Definition.CustomSettings != null && RemainingCountermeasures == 0 && Definition.ReloadTime > 0 && !IsDestroyed)
+            {
+                if (ReloadRemaining <= 0) ReloadRemaining = Definition.ReloadTime;
+                ReloadRemaining -= deltaTime;
+                if (ReloadRemaining <= 0) RemainingCountermeasures = Definition.CountermeasureCapacity;
+            }
+
         }
         
         public void TakeDamage(float damage)
@@ -303,6 +336,7 @@ namespace SprocketAdvancedAPS.Systems
         
         public void Dispose()
         {
+            IsOperational = false;
             AssignedThreats.Clear();
             CoverageSectors.Clear();
         }

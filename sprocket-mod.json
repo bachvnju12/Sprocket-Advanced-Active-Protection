@@ -3,9 +3,9 @@
   "schema_version": 3,
   "id": "sprocket.advancedaps",
   "name": "SprocketAdvancedAPS",
-  "authors": ["SAAPS Team"],
-  "repository": "SAAPS/SprocketAdvancedAPS",
-  "license": "GPL-3.0-only",
+  "authors": ["bachvnju12"],
+  "repository": "bachvnju12/Sprocket-Advanced-Active-Protection",
+  "license": "MIT",
   "kind": "modfile",
   "display_name": {
     "en": "Sprocket Advanced APS",
@@ -33,19 +33,10 @@
     {
       "id": "furryaxw.sprocket-mod-api",
       "version": ">=1.1.0 <2.0.0",
-      "required": true
+      "when": "*"
     }
   ],
-  "recommendations": [
-    "sprocket.shellselector",
-    "sprocket.materialselector",
-    "sprocket.thermalsight",
-    "sprocket.coldwarexpansionpack",
-    "sprocket.carousel",
-    "nl.roan.sprocket.hydropneumatic",
-    "furryaxw.smoke-suppressor",
-    "nl.roan.sprocket.keybinds"
-  ],
+  "recommendations": [],
   "install": {
     "files": [
       {

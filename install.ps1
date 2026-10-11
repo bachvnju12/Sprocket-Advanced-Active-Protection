@@ -37,13 +37,17 @@ if (-not (Test-Path $pluginSource)) { throw "Build DLL missing: $pluginSource. R
 if (-not (Test-Path (Join-Path $partsRoot "Parts"))) { & (Join-Path $PSScriptRoot "generate-parts.ps1") }
 $partFiles = Get-ChildItem (Join-Path $partsRoot "Parts") -Filter "saaps_*Part.json" -File
 $locFiles = Get-ChildItem (Join-Path $partsRoot "Localization\en-UK\Parts") -Filter "saaps_*.xml" -File
-if ($partFiles.Count -ne 10 -or $locFiles.Count -ne 10) { throw "Expected 10 APS part JSON and 10 localization files." }
+if ($partFiles.Count -ne 11 -or $locFiles.Count -ne 11) { throw "Expected 10 fixed APS parts plus Custom APS and 11 localization files." }
 $meshFiles = @(Get-ChildItem $meshesSource -Filter "saaps_*.json" -File)
 if ($meshFiles.Count -ne 10) { throw "Expected 10 APS model meshes." }
 $iconFiles = @(Get-ChildItem $iconsSource -Filter "saaps_*.png" -File)
-if ($iconFiles.Count -ne 10) { throw "Expected 10 APS catalog icons." }
+if ($iconFiles.Count -ne 11) { throw "Expected 11 APS catalog icons." }
+$audioSource = Join-Path $PSScriptRoot 'generated\audio'
+foreach ($profile in 'shot', 'rocket', 'launcher') {
+    if (-not (Test-Path (Join-Path $audioSource "$profile.wav"))) { throw "Missing shipped audio: $profile.wav. Run offline checks with --write-audio first." }
+}
 if (-not (Test-Path -LiteralPath $atlasSource)) { throw "Expected SAAPS surface atlas." }
-foreach ($target in @((Join-Path $pluginDir "SprocketAdvancedAPS.dll"), (Join-Path $installDir "sprocket-mod.json"), (Join-Path $installDir "meshes"), (Join-Path $installDir "icons"), (Join-Path $installDir "textures"))) {
+foreach ($target in @((Join-Path $pluginDir "SprocketAdvancedAPS.dll"), (Join-Path $installDir "sprocket-mod.json"), (Join-Path $installDir "meshes"), (Join-Path $installDir "icons"), (Join-Path $installDir "textures"), (Join-Path $installDir "audio"))) {
     if (Test-Path $target) {
         New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
         Copy-Item -LiteralPath $target -Destination $backupDir -Recurse
@@ -70,6 +74,8 @@ New-Item -ItemType Directory -Force -Path (Join-Path $installDir "icons") | Out-
 Copy-Item -Path (Join-Path $iconsSource "saaps_*.png") -Destination (Join-Path $installDir "icons") -Force
 New-Item -ItemType Directory -Force -Path (Join-Path $installDir "textures") | Out-Null
 Copy-Item -LiteralPath $atlasSource -Destination (Join-Path $installDir "textures\saaps_surfaces.png") -Force
+New-Item -ItemType Directory -Force -Path (Join-Path $installDir "audio") | Out-Null
+Copy-Item -Path (Join-Path $audioSource '*.wav') -Destination (Join-Path $installDir 'audio') -Force
 Get-FileHash $pluginSource,(Join-Path $pluginDir "SprocketAdvancedAPS.dll"),$atlasSource,(Join-Path $installDir "textures\saaps_surfaces.png") -Algorithm SHA256 | Format-Table Path,Hash
 if (Test-Path $backupDir) { Write-Host "Collision backups: $backupDir" }
-Write-Host "Installed SAAPS plugin, 10 model parts, meshes and catalog icons. Restart game; find APS under Firepower > Active Protection Systems. Replace old APS add-on structures with these model parts."
+Write-Host "Installed SAAPS plugin, 10 fixed model parts, one editable Custom APS, 11 icons/localizations and synthetic launch audio. Restart game; find APS under Firepower > Active Protection Systems. Native Custom APS placement/save-load and playback still need verification."

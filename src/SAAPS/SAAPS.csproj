@@ -15,9 +15,9 @@
     <PlatformTarget>x64</PlatformTarget>
 
     <Description>Advanced Active Protection Systems for Sprocket - Realistic APS simulation with 10 historical systems</Description>
-    <Authors>SAAPS Team</Authors>
-    <PackageLicenseExpression>GPL-3.0-only</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/SAAPS/SprocketAdvancedAPS</RepositoryUrl>
+    <Authors>bachvnju12</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
 
     <!-- Game install the referenced assemblies are read from. Override it when the

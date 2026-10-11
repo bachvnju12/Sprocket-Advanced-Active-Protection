@@ -30,7 +30,7 @@ foreach ($match in [regex]::Matches($definitions, 'Id = "([a-z0-9]+)"(?<body>.*?
     $expected["$prefix/MinInterceptSpeed"] = [Math]::Min(50, [double]::Parse($minimum, [Globalization.CultureInfo]::InvariantCulture)).ToString([Globalization.CultureInfo]::InvariantCulture)
     $expected["$prefix/MaxInterceptSpeed"] = $maximum
 }
-if ($expected.Count -ne 75 -or $actual.Count -ne $expected.Count) { throw "Config key count mismatch: expected=$($expected.Count) actual=$($actual.Count)" }
+if ($expected.Count -ne 76 -or $actual.Count -ne $expected.Count) { throw "Config key count mismatch: expected=$($expected.Count) actual=$($actual.Count)" }
 foreach ($key in $expected.Keys) {
     if (-not $actual.ContainsKey($key)) { throw "Missing config key: $key" }
     $wanted = $expected[$key]
@@ -39,4 +39,4 @@ foreach ($key in $expected.Keys) {
         if ([double]::Parse($value, [Globalization.CultureInfo]::InvariantCulture) -ne [double]::Parse($wanted, [Globalization.CultureInfo]::InvariantCulture)) { throw "Default mismatch: $key = $value; expected $wanted" }
     } elseif ($value -cne $wanted) { throw "Default mismatch: $key = $value; expected $wanted" }
 }
-Write-Host 'PASS: 75 config template keys match production bindings and speed defaults.'
+Write-Host 'PASS: 76 config template keys match production bindings and speed defaults.'

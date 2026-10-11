@@ -188,7 +188,7 @@ namespace SprocketAdvancedAPS.Systems
                     // Simultaneous-engagement slots are scarce: a round already inside the
                     // envelope can be shot this tick, one still 90 m out cannot. Reserve a
                     // slot for the former only when no module can fire right now.
-                    bool inEnvelope = module.IsThreatInEngagementEnvelope(threat);
+                    bool inEnvelope = module.IsInDispatchEnvelope(threat);
 
                     if (module.Definition.Type == APSType.SoftKill)
                     {
@@ -306,7 +306,7 @@ namespace SprocketAdvancedAPS.Systems
                     }
                     float reactionTime = module.Definition.ReactionTime * APSCore.ConfigGlobalReactionMultiplier.Value * APSCore.ModuleReactionMultiplier(module.Definition.Id);
                     // Report the failing gate separately: a shared throttle with ENGAGE hid both of these.
-                    string? reason = !module.IsThreatInEngagementEnvelope(threat) ? "envelope" :
+                    string? reason = !module.IsInDispatchEnvelope(threat) ? "envelope" :
                         !APSInterceptRules.ReactionSatisfied(Time.time, threat.DetectionTime, reactionTime, threat.TimeToImpact) ? "reaction" : null;
                     if (reason != null)
                     {
@@ -484,7 +484,7 @@ namespace SprocketAdvancedAPS.Systems
             // Only soft-kill/hybrid systems jam, and only guided rounds can lose a lock.
             if (!APSCore.ConfigEnabled.Value || !APSThreatClassifier.IsGuided(threat.ThreatClass) ||
                 !APSThreatTracker.Refresh(threat, module.Vehicle, module.VehicleState.Velocity) ||
-                !module.CanEngage(threat) || !module.IsInJamEnvelope(threat.Position)) return;
+                !module.CanPrepare(threat) || !module.IsInJamEnvelope(threat.Position)) return;
             if (!APSInterceptRules.JamReady(module.Definition.Type != APSType.HardKill, module.IsEnabled && APSCore.IsModuleEnabled(module.Definition.Id),
                 module.IsOperational, module.IsDestroyed, module.Health, module.RemainingCountermeasures, module.CooldownRemaining, threat.IsFriendly)) return;
 

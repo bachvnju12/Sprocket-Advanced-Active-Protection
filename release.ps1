@@ -5,10 +5,13 @@ $root = $PSScriptRoot
 if (-not $OutputRoot) { $OutputRoot = Join-Path $root "dist" }
 $OutputRoot = [IO.Path]::GetFullPath($OutputRoot)
 
+& (Join-Path $root "tests\check-metadata.ps1")
 & (Join-Path $root "tests\check-config.ps1")
 & (Join-Path $root "tests\check-parts.ps1")
-& dotnet run --project (Join-Path $root "tests\RegistryCheck.csproj") -- (Join-Path $root "generated\Sprocket_Data\StreamingAssets\Parts")
+& dotnet run --project (Join-Path $root "tests\RegistryCheck.csproj") -- (Join-Path $root "generated\Sprocket_Data\StreamingAssets\Parts") --write-audio (Join-Path $root "generated\audio")
 if ($LASTEXITCODE -ne 0) { throw "Registry regression failed: $LASTEXITCODE" }
+& dotnet run --project (Join-Path $root "tests\ModuleCheck\ModuleCheck.csproj")
+if ($LASTEXITCODE -ne 0) { throw "Module regression failed: $LASTEXITCODE" }
 & (Join-Path $root "build.ps1") -GameRoot $GameRoot -Configuration Release -SkipDeploy
 
 $main = [IO.File]::ReadAllText((Join-Path $root "src\SAAPS\Main.cs"))
@@ -26,13 +29,13 @@ $examples = Join-Path $stage "ConfigExamples"
 New-Item -ItemType Directory -Path $plugin, $assets, $parts, $loc, $examples -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $root "src\SAAPS\bin\Release\net6.0\SprocketAdvancedAPS.dll") -Destination $plugin
 Copy-Item -LiteralPath (Join-Path $root "sprocket-mod.json") -Destination $assets
-foreach ($dir in "meshes", "icons", "textures") {
+foreach ($dir in "meshes", "icons", "textures", "audio") {
     Copy-Item -LiteralPath (Join-Path $root "generated\$dir") -Destination $assets -Recurse
 }
 Copy-Item -Path (Join-Path $root "generated\Sprocket_Data\StreamingAssets\Parts\saaps_*Part.json") -Destination $parts
 Copy-Item -Path (Join-Path $root "generated\Sprocket_Data\StreamingAssets\Localization\en-UK\Parts\saaps_*.xml") -Destination $loc
 Copy-Item -LiteralPath (Join-Path $root "Config\sprocket.advancedaps.cfg") -Destination $examples
-foreach ($file in "README.md", "INSTALL.txt", "CHANGELOG.md", "CREDITS.md", "VERIFICATION.md", "LICENSE") {
+foreach ($file in "README.md", "INSTALL.txt", "CHANGELOG.md", "CREDITS.md", "VERIFICATION.md", "RELEASE_NOTES.md", "LICENSE") {
     Copy-Item -LiteralPath (Join-Path $root $file) -Destination $stage
 }
 
@@ -56,7 +59,11 @@ $sha = [Security.Cryptography.SHA256]::Create()
 try {
     $expected = @(Get-ChildItem -LiteralPath $stage -File -Recurse)
     if ($archive.Entries.Count -ne $expected.Count) { throw "ZIP entry count mismatch" }
-    foreach ($path in 'BepInEx/plugins/SprocketAdvancedAPS.dll', 'ConfigExamples/sprocket.advancedaps.cfg', 'SHA256SUMS.txt') {
+    foreach ($path in 'BepInEx/plugins/SprocketAdvancedAPS.dll', 'ConfigExamples/sprocket.advancedaps.cfg', 'SHA256SUMS.txt',
+        'BepInEx/plugins/SprocketAdvancedAPS/audio/shot.wav', 'BepInEx/plugins/SprocketAdvancedAPS/audio/rocket.wav',
+        'BepInEx/plugins/SprocketAdvancedAPS/audio/launcher.wav', 'BepInEx/plugins/SprocketAdvancedAPS/icons/saaps_custom.png',
+        'Sprocket_Data/StreamingAssets/Parts/saaps_customPart.json', 'Sprocket_Data/StreamingAssets/Localization/en-UK/Parts/saaps_custom.xml',
+        'RELEASE_NOTES.md', 'LICENSE') {
         if ($null -eq $archive.GetEntry($path)) { throw "Missing ZIP path: $path" }
     }
     foreach ($entry in $archive.Entries) {

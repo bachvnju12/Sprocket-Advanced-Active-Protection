@@ -1,62 +1,88 @@
 SPROCKET ADVANCED APS (SAAPS) - INSTALL GUIDE
 ============================================
-Version: 1.0.0
+Version: 1.0.0; current source contains unreleased development changes.
 Game: Sprocket 0.2.55.5 / Unity 6000.3.21f1 / Windows x64
 Loader: BepInEx 6.0.0-be.788 IL2CPP
 Dependency: Sprocket Mod API >=1.1.0, <2.0.0
 
-INSTALL
--------
-1. Close Sprocket. Back up existing SAAPS files and customized config.
-2. Extract release ZIP directly beside Sprocket.exe, not inside another folder.
-   ZIP root contains:
+INSTALL (MANUAL ZIP LAYOUT)
+--------------------------
+1. Close Sprocket. Back up existing SAAPS files, custom presets, config and saves.
+2. Extract full ZIP directly beside Sprocket.exe, not inside another folder.
+   Current development package includes:
    BepInEx/plugins/SprocketAdvancedAPS.dll
    BepInEx/plugins/SprocketAdvancedAPS/sprocket-mod.json
    BepInEx/plugins/SprocketAdvancedAPS/meshes/saaps_*.json (10)
-   BepInEx/plugins/SprocketAdvancedAPS/icons/saaps_*.png (10)
+   BepInEx/plugins/SprocketAdvancedAPS/icons/saaps_*.png (11)
    BepInEx/plugins/SprocketAdvancedAPS/textures/saaps_surfaces.png
-   Sprocket_Data/StreamingAssets/Parts/saaps_*Part.json (10)
-   Sprocket_Data/StreamingAssets/Localization/en-UK/Parts/saaps_*.xml (10)
+   BepInEx/plugins/SprocketAdvancedAPS/audio/{shot,rocket,launcher}.wav
+   Sprocket_Data/StreamingAssets/Parts/saaps_*Part.json (11)
+   Sprocket_Data/StreamingAssets/Localization/en-UK/Parts/saaps_*.xml (11)
    ConfigExamples/sprocket.advancedaps.cfg
-   README.md, INSTALL.txt, CHANGELOG.md, CREDITS.md, VERIFICATION.md, LICENSE
-   SHA256SUMS.txt
-3. Existing BepInEx/config/sprocket.advancedaps.cfg is NOT overwritten.
-   BepInEx creates defaults on first run. Optional template lives under
-   ConfigExamples; copy it to BepInEx/config only when no customized config exists.
+   README.md, INSTALL.txt, CHANGELOG.md, CREDITS.md, VERIFICATION.md,
+   RELEASE_NOTES.md, LICENSE, SHA256SUMS.txt
+   Older published ZIPs do not contain all development features.
+3. Existing BepInEx/config/sprocket.advancedaps.cfg and CustomAPS presets are
+   NOT included or overwritten. BepInEx creates defaults on first run.
+   Optional config template lives under ConfigExamples; copy only when no
+   customized runtime config exists.
 4. Launch game. Open Firepower > Active Protection Systems.
-   Old APS saved as add-on structures must be replaced with new model parts;
-   existing saaps_<system> model components retain their identity.
+   Old APS saved as add-on structures must be replaced with model parts;
+   existing saaps_<system> model components retain their IDs/GUIDs.
 
-CONFIG
-------
-Runtime reads BepInEx/config/sprocket.advancedaps.cfg.
-Config/default-aps-profiles.json in source is reference data, NOT a loaded preset.
-Speed limits and probability multipliers are gameplay approximations.
-Soft-kill cone is compiled: 30 degrees horizontal (plus/minus 15),
-20 degrees vertical (plus/minus 10), around module local +Z.
-HUD, F7 coverage and inspector rendering are not implemented.
+Registry auto-install is NOT validated. Current manifest asset rules cannot
+be treated as a working multi-directory ZIP installation. Use manual layout
+only after testing; metadata fixes do not imply registry approval.
 
-VERIFY
-------
-Check BepInEx/LogOutput.log for "[SAAPS] APS model-part runtime loaded".
-Enable General/DebugMode for detection/engagement/release logs.
-Offline build/tests/ZIP hashes do not prove in-game camo or tracer appearance.
-See VERIFICATION.md for remaining live checks.
+CUSTOM APS (DEVELOPMENT; LIVE ACCEPTANCE PENDING)
+-----------------------------------------------
+1. Place Custom APS. Its marker must be applied to the newly created plate;
+   ordinary plates must not get APS behavior.
+2. Edit shape with native plate vertex/edge/face tools. Local +Z is forward.
+   Custom APS inspector changes name, profile, type, ranges, full-angle FOV,
+   probabilities, ammo/reload and launch sound.
+3. Save preset stores shape and settings. Confirm overwrite keeps .bak;
+   Save as new creates a separate ID. Refresh preset list and Load selected
+   preset let another Custom APS part reuse it.
+4. Files live at BepInEx/config/SprocketAdvancedAPS/CustomAPS/<id>.json.
+   Vehicle settings snapshot and native geometry are intended to survive
+   without that file; quit/restart/load and duplicate/mirror remain untested.
 
-UPGRADE / UNINSTALL
--------------------
-Upgrade: back up SAAPS files, then replace ZIP files with game closed.
-Keep customized runtime config. Do not remove or replace other mods.
-Uninstall: delete only listed SAAPS plugin/assets, ten saaps_* part definitions
-and ten saaps_* localization files. Optionally remove SAAPS runtime config.
-Blueprints referencing removed parts may need those parts removed in Designer.
+Shared native meshes are rejected to protect other parts. Native editing to
+separate a mesh remains unverified live. If apply AND rollback fail, do not
+save over your original vehicle. Back up saves before experimentation.
 
-BUILD RELEASE FROM SOURCE
--------------------------
+CONFIG / AUDIO
+--------------
+Runtime config: BepInEx/config/sprocket.advancedaps.cfg.
+Config/default-aps-profiles.json is reference data, NOT a Custom APS preset.
+Speed limits and probabilities are gameplay approximations.
+Builtin jam cone: 30 degrees horizontal total, 20 degrees vertical total,
+around local +Z. Custom APS can set its own jam cone.
+Audio/LaunchVolume defaults to 0.8; 0 mutes hard-kill launch attempts,
+including misses. Three sounds are synthetic, not genuine APS recordings.
+Soft-kill is silent. Spatial audio still requires an in-game listening test.
+HUD and F7 coverage are not implemented; Custom APS inspector is separate.
+
+VERIFY / UPGRADE / UNINSTALL
+---------------------------
+Check BepInEx/LogOutput.log for [SAAPS] messages. Enable General/DebugMode
+for engagement/release logs. Offline checks do not prove native behavior.
+See VERIFICATION.md for live acceptance gates.
+Upgrade with game closed; preserve customized config/presets and other mods.
+Uninstall only SAAPS DLL/assets and eleven saaps_* part/localization files.
+Removing parts can affect blueprints; restore backups or remove parts first.
+Do not delete custom presets unless you explicitly intend to lose them.
+
+BUILD DEVELOPMENT PACKAGE FROM SOURCE
+-------------------------------------
 powershell -NoProfile -ExecutionPolicy Bypass -File release.ps1
 Optional: -GameRoot "D:\Games\Sprocket" -OutputRoot "D:\Releases\SAAPS"
 Requires .NET 6 SDK and installed game/BepInEx/ModAPI assemblies.
-Runs offline tests, builds Release without deploy, packages ZIP and verifies hashes.
+Runs offline tests, builds without deploy, packages ZIP and verifies hashes.
 Output: dist/SprocketAdvancedAPS-1.0.0-<timestamp>.zip and .zip.sha256.
+No game assemblies, reference photos or user data are packaged.
+Packaging is not licensing clearance or live acceptance.
 Do not commit dist/, bin/, obj/, work/ or local game configs.
-Attach ZIP and its checksum to a GitHub Release separately.
+Publishing is separate. RELEASE_NOTES.md must be used as release BODY so
+sp-compat is visible to registry tooling, not only shipped as an attachment.

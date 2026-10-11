@@ -26,7 +26,7 @@ namespace SprocketAdvancedAPS.Parts
         internal APSPartRegistry(ManualLogSource log) => Instance = this;
 
         internal static APSDefinition? GetModuleDefinition(VehicleComponent component) =>
-            component == null ? null : GetModuleDefinition(component.ComponentID);
+            component == null ? null : GetModuleDefinition(component.ComponentID) ?? Core.APSCustomRuntime.Find(component)?.Definition;
 
         internal static APSDefinition? GetModuleDefinition(string? componentId) =>
             componentId != null && DefinitionIds.TryGetValue(componentId, out var id) && APSDefinitions.TryGet(id, out var definition) ? definition : null;
