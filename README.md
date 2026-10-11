@@ -1,111 +1,95 @@
-# Sprocket Advanced APS — Installation
+# Sprocket Advanced APS
 
-Adds ten fixed Active Protection System modules to Sprocket: Drozd-1, Drozd-2, Arena, Arena-M, Afganit, Shtora-1, Trophy, Iron Fist, AMAP-ADS and Zaslin. Current development source also includes an editable **Custom APS** part and shape/settings presets; native placement and save/load acceptance are still pending.
+Adds ten Active Protection System modules to Sprocket: **Drozd-1, Drozd-2, Arena, Arena-M, Afganit, Shtora-1, Trophy, Iron Fist, AMAP-ADS, Zaslin**, plus an experimental editable **Custom APS** part.
 
-Hard-kill modules intercept hostile native projectiles. Shtora-1 and Afganit also provide simulated soft-kill against guided rounds. Effectiveness, speeds and coverage are gameplay approximations, not confirmed real-world specifications.
+- **Hard-kill** intercepts hostile native projectiles.
+- **Soft-kill** (Shtora-1, Afganit) jams guided rounds.
+
+> Stats are gameplay approximations, not real-world specifications.
 
 ## Requirements
 
-- Sprocket **0.2.55.5**, Windows x64.
-- A working **Sprocket Mod Loader / BepInEx 6 IL2CPP** setup.
-- Sprocket Mod API is optional. SAAPS owns its APS menu and icons; neither requires the MelonLoader 0.3.0.0 API nor the BepInEx 1.1.x API. Native/live checks for both setups remain pending.
-- Quality of Life and other optional mods are not required.
+- Sprocket **0.2.55.5** (Windows x64)
+- **Sprocket Mod Loader / BepInEx 6 IL2CPP**
+- Sprocket Mod API is optional
 
-## Install
+## Installation
 
-1. Start the game once with BepInEx 6 IL2CPP installed to generate interop assemblies, then close it.
-2. Build the current **1.0.1 source** using `release.ps1` below. The existing GitHub `1.0.1` Release page has no attached ZIP/DLL; its tag predates these source fixes. Do not use GitHub's source ZIP as an install package.
-3. Extract the ZIP into the Sprocket installation folder, next to `Sprocket.exe`. Merge the included `BepInEx` and `Sprocket_Data` folders.
-4. Launch the game. Open **Firepower > Active Protection Systems** in the Vehicle Designer and place an APS module on your vehicle.
+1. Run the game once with BepInEx 6 IL2CPP to generate interop assemblies, then close it.
+2. Build the package with `release.ps1` (see [Build](#build-from-source)). The GitHub `1.0.1` release has no ZIP attached.
+3. Extract the ZIP next to `Sprocket.exe`, merging `BepInEx` and `Sprocket_Data`.
+4. Open **Firepower > Active Protection Systems** in the Vehicle Designer.
 
-**The DLL alone is not enough.** Keep the meshes, icons, texture atlas, audio, part definitions and localization included in the ZIP. Older published ZIPs do not contain the current development changes. Registry installation remains blocked until its multi-directory asset mapping is supported and tested.
-
-Expected layout:
+The DLL alone is not enough; keep all bundled assets.
 
 ```text
 Sprocket/
   BepInEx/plugins/
     SprocketAdvancedAPS.dll
-    SprocketAdvancedAPS/
-      sprocket-mod.json
-      meshes/
-      icons/
-      textures/
-      audio/{shot,rocket,launcher}.wav
+    SprocketAdvancedAPS/   (meshes, icons, textures, audio, sprocket-mod.json)
   Sprocket_Data/StreamingAssets/
     Parts/saaps_*Part.json
     Localization/en-UK/Parts/saaps_*.xml
 ```
 
-Upgrading from older APS add-on structures? Remove and replace those parts in the designer. Updating the DLL does not convert old structures into the new persistent APS model parts.
+**Upgrading from an older APS add-on?** Remove the old parts and place the new ones.
 
-## Use
+## Usage
 
-APS operates automatically during simulation. Each placed module has its own countermeasure supply and cooldown; misses also consume countermeasures.
+APS works automatically in simulation. Each module has its own countermeasure supply and cooldown; misses also consume countermeasures.
 
-Point soft-kill emitters along their local **+Z** axis toward the desired arc. Each emitter's jam cone is **30° horizontal total (±15°), 20° vertical total (±10°)**. Afganit's wider hard-kill coverage is separate. Soft-kill does not draw a beam or fire an interceptor.
-
-Hard-kill uses a native shell visual adapter and requests a **40 mm explosion effect only after a verified interception**. Visual failure does not prevent interception. Native tracer appearance and vehicle paint/camo synchronization still need live testing.
-
-Shtora-1 uses an uncovered IR-filter variant: recessed wine-red opaque glossy glass inside a painted bezel. Glass keeps its own color; housing retains native vehicle paint/camo. Tint/depth are modeling estimates; the local reference photo has its painted cover fitted. No emission or beam is added. HDRP reflections and camo separation remain unverified in game.
-
-## Custom APS — development feature
-
-1. Open **Firepower > Active Protection Systems > Custom APS**. Selection uses the native editable plate loader. Only a successfully marked Custom plate gets the APS inspector; ordinary plates remain unchanged. This revision still needs in-game acceptance.
-2. Use native plate vertex/edge/face tools for its shape. Local **+Z** is forward. Open **Custom APS** in the plate inspector to set a Unicode name, starting profile, type, ranges, full-angle FOV, probabilities, ammo/reload and launch sound.
-3. **Save preset** stores shape and settings. Existing files require **Confirm overwrite (backup kept)**; **Save as new** creates a separate ID. Use **Refresh preset list**, **Saved preset**, then **Load selected preset** on another Custom APS part.
-4. Presets live at `BepInEx/config/SprocketAdvancedAPS/CustomAPS/<id>.json`. Vehicle serialization is intended to keep its own settings snapshot and native geometry, independent of the external preset. Quit/restart/load, duplicate and mirror still require live verification.
-
-Shared native meshes are rejected during preset load to avoid changing other parts. Use native vertex editing to obtain a separate mesh before retrying; this workflow remains unverified live. Presets reject invalid fields, geometry and files larger than 2 MiB. If both apply and rollback fail, do not save over your original vehicle.
-
-Hard-kill launch attempts, including misses, use three original **synthetic** impulse/noise sound profiles. No real APS firing recording was listened to or matched. Soft-kill is silent. `Audio/LaunchVolume` defaults to `0.8`; `0` mutes launch SFX.
+- **Soft-kill aiming:** point the emitter along local **+Z**. Jam cone: **±15° horizontal, ±10° vertical**. Silent, no beam.
+- **Hard-kill:** 40 mm explosion effect plays only after a verified interception. Every launch attempt uses a synthetic launch sound.
 
 ## Configuration
 
-BepInEx creates the runtime config on first load:
+`BepInEx/config/sprocket.advancedaps.cfg` (created on first launch; close the game before editing)
 
-```text
-Sprocket/BepInEx/config/sprocket.advancedaps.cfg
-```
+- Global enable, debug logging
+- Detection / reaction multipliers
+- Per-module enable, range, reaction, interception multipliers
+- Hard-kill speed limits
+- `Audio/LaunchVolume` (default `0.8`, `0` = mute)
 
-Close the game before editing. Settings include global enable, debug logs, detection/reaction multipliers, per-module enable/range/reaction/interception multipliers, and hard-kill speed limits.
+A default template is in `ConfigExamples/sprocket.advancedaps.cfg`. Don't overwrite a customized config with it. HUD and F7 coverage are not implemented.
 
-The ZIP includes a clean default template at:
+## Custom APS (experimental)
 
-```text
-ConfigExamples/sprocket.advancedaps.cfg
-```
+1. Place **Firepower > Active Protection Systems > Custom APS**.
+2. Shape it with the native plate tools (local **+Z** is forward).
+3. Set name, profile, type, ranges, FOV, probabilities, ammo, reload, and launch sound in the **Custom APS** inspector section.
 
-Use it only if needed; **do not overwrite a customized config**. Release extraction does not install the template into `BepInEx/config`.
+**Presets** (`BepInEx/config/SprocketAdvancedAPS/CustomAPS/<id>.json`)
 
-HUD and F7 coverage are not implemented. `ShowHUD` and `ToggleHUD` are reserved settings. Custom APS has a native plate inspector extension; fixed-model balance remains in the config.
+- **Save preset** / **Confirm overwrite** (backup kept) / **Save as new**
+- **Refresh preset list** > **Saved preset** > **Load selected preset**
+- Presets can't be loaded onto meshes shared with other parts; edit a vertex first.
+- Invalid presets and files over 2 MiB are rejected.
 
-## Status and troubleshooting
+## Known limitations
 
-Local offline checks have covered metadata, configuration, generated parts, geometry, preset validation, WAV decoding and production module rules. Test fixtures are not distributed in this source tree; packaging only checks generated audio and ZIP layout/hashes. Neither proves live behavior. Seven models are photo-reference drafts; Drozd-2, Arena-M and Zaslin remain placeholders. Custom placement/persistence, paint/camo, tracer appearance and spatial audio still need live validation.
+Built with AI assistance. **Back up your vehicle saves before experimenting.**
 
-Yep, this was built with AI assistance. **Back up your vehicle saves before experimenting.**
+- Drozd-2, Arena-M, and Zaslin are placeholder models.
+- Custom APS save/load, duplicate, and mirror are not fully verified in game.
+- Paint/camo sync, tracer visuals, glass reflections, and spatial audio are untested live.
 
-Having trouble? Check `BepInEx/LogOutput.log` for `[SAAPS]` messages. Enable `DebugMode = true` in the config for engagement decisions. HUD is not needed for APS to operate.
+## Troubleshooting
+
+Check `BepInEx/LogOutput.log` for `[SAAPS]` entries. Set `DebugMode = true` for engagement logs.
 
 ## Build from source
 
-With .NET 6 SDK and the required game/mod assemblies installed:
+Requires .NET 6 SDK and the game/mod assemblies.
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File release.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File release.ps1   # build ZIP + SHA256 in dist/
+powershell -NoProfile -ExecutionPolicy Bypass -File install.ps1   # install local build (game closed)
 ```
 
-Git contains runtime source, necessary build/install scripts and audio generator source, the default config template, package metadata, README, LICENSE and release note. `release.ps1` regenerates assets under `generated/`, validates generated audio, builds without deploying and creates a ZIP plus SHA256 checksum under `dist/`. Tests, working notes and generated output stay local, not tracked.
-
-To install that local build with Sprocket closed:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File install.ps1
-```
-
-The installer backs up replaced SAAPS files; runtime config/presets and other mods are not overwritten. `build.ps1` and `dotnet build` never install automatically. Packaging does not prove native acceptance. Release/tag publication is separate; its body must contain the `sp-compat` comment from `RELEASE_NOTES.md`.
+The installer backs up replaced SAAPS files and never touches configs, presets, or other mods.
 
 ## License
 
-MIT, matching [LICENSE](LICENSE). Repository: [Sprocket-Advanced-Active-Protection](https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection).
+MIT. See [LICENSE](LICENSE).
+Repository: [Sprocket-Advanced-Active-Protection](https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection)
