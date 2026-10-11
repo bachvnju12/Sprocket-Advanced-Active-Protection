@@ -59,7 +59,7 @@ Additional references for four development drafts:
 - AMAP-ADS/StrikeShield exterior tile: [StrikeShield APS on Lynx IFV](https://commons.wikimedia.org/wiki/File:StrikeShield_APS_on_Lynx_IFV.jpg), local `work/ref-strikeshield-20261010/strikeshield.jpg`.
 
 Copies are local visual-reference data, not shipped assets. Photo licensing/attribution details have not been fully audited; do not redistribute photographs as mod assets. Model dimensions and hidden internals are estimates, not hardware measurements. Drozd-2, Arena-M and Zaslin remain placeholders.
-See `work/model-reference-notes.md` for modeling choices and limitations.
+See [MODEL_REFERENCES.md](MODEL_REFERENCES.md) for modeling choices and limitations. Local reference copies and evidence stay in ignored `work/`.
 
 ## Audio
 

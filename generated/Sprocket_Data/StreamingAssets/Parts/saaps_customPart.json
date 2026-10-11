@@ -14,14 +14,13 @@
                            "info":  {
                                         "v":  "0.0",
                                         "mesh":  {
-                                                     "v":  "0.2",
-                                                     "name":  "Custom APS",
+                                                     "v":  "0.0",
                                                      "smoothAngle":  0,
                                                      "gridSize":  1,
                                                      "format":  "freeform",
                                                      "mesh":  {
                                                                   "majorVersion":  0,
-                                                                  "minorVersion":  3,
+                                                                  "minorVersion":  0,
                                                                   "vertices":  [
                                                                                    -0.125,
                                                                                    0,

@@ -50,13 +50,7 @@ namespace SprocketAdvancedAPS.Systems
             float.IsFinite(radius) && radius > 0f && distanceSquared >= 0f && closingDot > 0f && relativeSpeedSquared > 0f &&
             distanceSquared - closingDot * closingDot / relativeSpeedSquared <= radius * radius;
 
-        // A round already inside the module's minimum stand-off is the most dangerous one there
-    // is; the sector range test rejects it, but nothing is gained by waiting it out.
-    internal static bool InsideMinRange(float distanceSquared, float minRange) =>
-        float.IsFinite(distanceSquared) && float.IsFinite(minRange) && minRange > 0f &&
-        distanceSquared >= 0f && distanceSquared < minRange * minRange;
-
-    internal static bool ReactionReady(float now, float detectedAt, float delay) =>
+        internal static bool ReactionReady(float now, float detectedAt, float delay) =>
             float.IsFinite(now) && float.IsFinite(detectedAt) && float.IsFinite(delay) && delay >= 0f && now - detectedAt >= delay;
 
         // A target that reaches the protected vehicle before the tracker can finish reacting

@@ -1,64 +1,12 @@
 {
-  "$schema": "https://sprocketmods.furryaxw.top/schemas/sprocket-mod.schema.json",
-  "schema_version": 3,
   "id": "sprocket.advancedaps",
-  "name": "SprocketAdvancedAPS",
+  "name": "Sprocket Advanced APS",
+  "version": "1.0.2",
   "authors": ["bachvnju12"],
   "repository": "bachvnju12/Sprocket-Advanced-Active-Protection",
   "license": "MIT",
-  "kind": "modfile",
-  "display_name": {
-    "en": "Sprocket Advanced APS",
-    "ru": "Sprocket Advanced APS",
-    "de": "Sprocket Advanced APS",
-    "uk": "Sprocket Advanced APS",
-    "he": "Sprocket Advanced APS"
-  },
-  "description": {
-    "en": "Advanced Active Protection Systems simulation with 10 historical APS systems from USSR/Russia, Ukraine, Israel, and Germany. Realistic threat detection, hard-kill interception, soft-kill jamming, and per-module damage.",
-    "ru": "Продвинутая симуляция систем активной защиты с 10 историческими АПС из СССР/России, Украины, Израиля и Германии.",
-    "de": "Fortgeschrittene Active-Protection-Systeme-Simulation mit 10 historischen APS aus UdSSR/Russland, Ukraine, Israel und Deutschland.",
-    "uk": "Продвинута симуляція систем активного захисту з 10 історичними АПЗ з СРСР/Росії, України, Ізраїлю та Німеччини.",
-    "he": "סימולציית מערכות הגנה פעילה מתקדמת עם 10 מערכות APS היסטוריות."
-  },
-  "release": {
-    "include_prerelease": false,
-    "version_pattern": "^v?([0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?)$",
-    "assets": {
-      "include": ["SprocketAdvancedAPS.dll"],
-      "exclude": []
-    }
-  },
-  "dependencies": [
-    {
-      "id": "furryaxw.sprocket-mod-api",
-      "version": ">=1.1.0 <2.0.0",
-      "when": "*"
-    }
-  ],
-  "recommendations": [],
-  "install": {
-    "files": [
-      {
-        "match": "SprocketAdvancedAPS.dll",
-        "type": "bepinex:plugin"
-      },
-      {
-        "match": "Parts/*.json",
-        "type": "sprocket:parts"
-      },
-      {
-        "match": "Config/*.json",
-        "type": "sprocket:config"
-      },
-      {
-        "match": "Assets/**",
-        "type": "sprocket:assets"
-      }
-    ],
-    "scan_dlls": true,
-    "exclude": []
-  },
   "category": "gameplay",
-  "tags": ["aps", "active-protection", "hard-kill", "soft-kill", "defense", "tank", "military"]
+  "dependencies": [],
+  "installation": "manual-full-zip",
+  "description": "Ten APS modules and an editable Custom APS plate. Local package metadata, not a SprocketModManager registry entry. Required game-root parts and localization have no supported registry install mapping."
 }

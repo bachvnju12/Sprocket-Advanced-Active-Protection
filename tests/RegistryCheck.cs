@@ -57,13 +57,7 @@ internal static class RegistryCheck
             Check(SprocketAdvancedAPS.Systems.APSInterceptRules.IsLiveNative(flags), "Active pooled slot must be visible to the snapshot: " + flags);
         foreach (int flags in new[] { 0, 2, 3, 4, 8, 14, 15 })
             Check(!SprocketAdvancedAPS.Systems.APSInterceptRules.IsLiveNative(flags), "Released/held slot must be ignored: " + flags);
-        Check(SprocketAdvancedAPS.Systems.APSInterceptRules.InsideMinRange(9f, 4f), "Round inside minimum stand-off is engaged");
-        Check(!SprocketAdvancedAPS.Systems.APSInterceptRules.InsideMinRange(16f, 4f), "Round at the stand-off boundary stays on the sector test");
-        Check(!SprocketAdvancedAPS.Systems.APSInterceptRules.InsideMinRange(9f, 0f), "Zero stand-off disables the near-field override");
-        Check(!SprocketAdvancedAPS.Systems.APSInterceptRules.InsideMinRange(-1f, 4f), "Negative distance squared rejected");
-        foreach (float bad in new[] { float.NaN, float.PositiveInfinity })
-            Check(!SprocketAdvancedAPS.Systems.APSInterceptRules.InsideMinRange(9f, bad), "Invalid stand-off rejected: " + bad);
-        Console.WriteLine("PASS: production speed, trajectory, reaction, readiness, jamming, deflection, near-field and native slot-liveness rules (offline, no native projectile release).");
+        Console.WriteLine("PASS: production speed, trajectory, reaction, readiness, jamming, deflection and native slot-liveness rules (offline, no native projectile release).");
     }
 
     private static void CheckJamCone()

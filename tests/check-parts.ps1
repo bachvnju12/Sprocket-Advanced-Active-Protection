@@ -86,9 +86,25 @@ foreach ($file in $files) {
         if ($visible -lt 100 -or $transparent -lt 100 -or $colored -lt 100) { throw "Blank/white APS icon: $($part.name)" }
     } finally { $image.Dispose() }
     if ($part.name -eq 'saaps_custom') {
-        if ($part.guid -ne 'a91bb31a-2cf1-4d0a-8e31-000000000011' -or $part.tags -notcontains 'plateStructurePrefab' -or @($part.components).Count -ne 1 -or $part.components[0].type -ne 'plateStructurePrefab') { throw 'Invalid editable Custom APS prefab' }
-        $native = $part.components[0].info.mesh
-        if ($native.format -ne 'freeform' -or $native.mesh.vertices.Count -ne 24 -or $native.mesh.faces.Count -ne 6) { throw 'Invalid Custom APS starter geometry' }
+        if ($part.guid -ne 'a91bb31a-2cf1-4d0a-8e31-000000000011' -or $part.tags -notcontains 'plateStructurePrefab' -or $part.tags -notcontains 'saapsCustomPart' -or $part.tags -contains 'saapsPart' -or $part.tags -contains 'cannon' -or $part.tags -contains 'scope' -or @($part.components).Count -ne 1 -or $part.components[0].type -ne 'plateStructurePrefab') { throw 'Invalid editable Custom APS prefab' }
+        # Must match the native plateStructurePrefab mesh schema exactly (cubePlateStructurePart.json).
+        # Deviating fields (mesh.v, mesh.name, minorVersion) make native PartDefinitionIO throw,
+        # which fails the whole 'Vehicle Assets' plugin load and the vehicle editor.
+        $native = $part.components[0].info
+        if ($native.v -ne '0.0' -or $native.mesh.v -ne '0.0' -or $null -ne $native.mesh.name) { throw "Custom APS mesh schema version/name deviates from native: $($file.Name)" }
+        if ($native.mesh.mesh.majorVersion -ne 0 -or $native.mesh.mesh.minorVersion -ne 0 -or $native.mesh.format -ne 'freeform' -or $native.mesh.smoothAngle -ne 0 -or $native.mesh.gridSize -ne 1) { throw "Custom APS mesh payload deviates from native: $($file.Name)" }
+        if ($native.mesh.mesh.vertices.Count -ne 24 -or $native.mesh.mesh.faces.Count -ne 6) { throw 'Invalid Custom APS starter geometry' }
+        # Key-set equality with the shipped native prefab schema (StreamingAssets/Parts/cubePlateStructurePart.json):
+        # native deserialization rejects any field it does not know, and the asserts above cannot see an added one.
+        $expected = @{ info = @('v', 'mesh'); 'info.mesh' = @('v', 'smoothAngle', 'gridSize', 'format', 'mesh'); 'info.mesh.mesh' = @('majorVersion', 'minorVersion', 'vertices', 'faces') }
+        foreach ($level in 'info', 'info.mesh', 'info.mesh.mesh') {
+            $node = $part.components[0].info
+            foreach ($step in ($level -split '\.') | Select-Object -Skip 1) { $node = $node.$step }
+            $names = @($node.PSObject.Properties.Name)
+            $extra = @($names | Where-Object { $expected[$level] -notcontains $_ })
+            $missing = @($expected[$level] | Where-Object { $names -notcontains $_ })
+            if ($extra.Count -or $missing.Count) { throw "Custom APS $level field set differs from native (extra: $($extra -join ','); missing: $($missing -join ','))" }
+        }
         continue
     }
     if ($part.tags -notcontains "cannon" -or $part.tags -notcontains "scope" -or $part.tags -notcontains "saapsPart" -or $part.tags -contains "sightsElectronics") { throw "APS menu tags missing or overlap Thermal group: $($file.Name)" }
@@ -132,6 +148,27 @@ foreach ($file in $files) {
             $triangleCount++
         }
     }
+    if ($part.name -eq 'saaps_shtora1') {
+        if (@($mesh.sensorTint).Count -ne 3 -or $mesh.sensorTint[0] -le $mesh.sensorTint[1] * 3 -or $mesh.sensorTint[0] -le $mesh.sensorTint[2] * 3) { throw 'Shtora IR glass tint missing' }
+        foreach ($value in $mesh.sensorTint) {
+            if ([double]::IsNaN($value) -or [double]::IsInfinity($value) -or $value -lt 0 -or $value -gt 1) { throw 'Invalid Shtora IR glass tint' }
+        }
+        $glass = @($mesh.faces | Where-Object { $_.surface -eq 2 })
+        if ($glass.Count -eq 0) { throw 'Shtora IR glass surface missing' }
+        foreach ($face in $glass) { foreach ($index in $face.v) {
+            $z = $mesh.vertices[3 * $index + 2]
+            if ($z -lt 0.1049 -or $z -gt 0.1101) { throw 'Shtora glass must remain behind bezel at z=0.118' }
+        } }
+        $front = [Drawing.Bitmap]::new((Join-Path $output 'previews\saaps_shtora1-front.png'))
+        try {
+            $redPixels = 0
+            for ($x = 0; $x -lt $front.Width; $x += 4) { for ($y = 0; $y -lt $front.Height; $y += 4) {
+                $p = $front.GetPixel($x, $y)
+                if ($p.A -gt 0 -and $p.R -gt 3 * $p.G -and $p.R -gt 3 * $p.B) { $redPixels++ }
+            } }
+            if ($redPixels -lt 200) { throw 'Shtora glass hidden or missing from front preview' }
+        } finally { $front.Dispose() }
+    } elseif ($mesh.PSObject.Properties['sensorTint']) { throw 'Shtora tint leaked to another APS' }
     if ($triangleCount -gt 8000) { throw "APS triangle budget exceeded: $($file.Name) $triangleCount" }
     $meshHash = $mesh | ConvertTo-Json -Depth 20 -Compress
     if (-not $meshes.Add($meshHash)) { throw "APS parts must use visibly distinct geometry: $($file.Name)" }

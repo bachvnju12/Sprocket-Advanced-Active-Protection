@@ -18,6 +18,9 @@ namespace SprocketAdvancedAPS.Systems
         private int _profileSamples;
         private float _nextProfileLog;
 
+        private float _errorLogWindowEnd;
+        private int _errorCount;
+
         internal APSSystems(ManualLogSource log)
         {
             Instance = this;
@@ -45,12 +48,27 @@ namespace SprocketAdvancedAPS.Systems
                     }
                     catch (Exception ex)
                     {
-                        _log.LogError($"[SAAPS] Vehicle state update error: {ex.Message}");
+                        ThrottledError("frame", ex);
                     }
                 }
             }
             APSVisualManager.Instance?.Update();
             APSAudioManager.Instance?.Update();
+        }
+
+        /// Repeated failures are summarized at most once per window: an exception thrown every
+        /// frame by every vehicle would otherwise flood the log and the disk.
+        private void ThrottledError(string context, Exception ex)
+        {
+            if (Time.unscaledTime < _errorLogWindowEnd)
+            {
+                _errorCount++;
+                return;
+            }
+            if (_errorCount > 0) _log.LogError($"[SAAPS] {context} update error repeated {_errorCount} more time(s), last: {ex.Message}");
+            else _log.LogError($"[SAAPS] {context} update error: {ex.Message}");
+            _errorCount = 0;
+            _errorLogWindowEnd = Time.unscaledTime + 5f;
         }
 
         internal void FixedUpdate()
@@ -62,6 +80,12 @@ namespace SprocketAdvancedAPS.Systems
             }
             bool profile = APSCore.ConfigPerformanceLog.Value;
             long start = profile ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
+            if (APSCore.Instance?.VehicleStates.Values.Any(state => state.IsActive) != true)
+            {
+                ProjectileTracker.Snapshot.Clear();
+                APSSoftKillSystem.Instance?.FixedUpdate();
+                return;
+            }
             ProjectileTracker.Capture();
 
             if (APSCore.Instance != null)
@@ -74,7 +98,7 @@ namespace SprocketAdvancedAPS.Systems
                     }
                     catch (Exception ex)
                     {
-                        _log.LogError($"[SAAPS] Vehicle fixed update error: {ex.Message}");
+                        ThrottledError("fixed", ex);
                     }
                 }
             }
@@ -98,11 +122,12 @@ namespace SprocketAdvancedAPS.Systems
 
         internal void Shutdown()
         {
-            APSSoftKillSystem.Instance?.Dispose();
-            APSHardKillSystem.Instance?.Dispose();
-            APSVisualManager.Instance?.Dispose();
-            APSAudioManager.Instance?.Dispose();
-            ProjectileTracker.Clear();
+            var errors = new List<Exception>();
+            foreach (var cleanup in new Action[] { () => APSSoftKillSystem.Instance?.Dispose(),
+                () => APSHardKillSystem.Instance?.Dispose(), () => APSVisualManager.Instance?.Dispose(),
+                () => APSAudioManager.Instance?.Dispose(), ProjectileTracker.Clear })
+                try { cleanup(); } catch (Exception ex) { errors.Add(ex); }
+            if (errors.Count != 0) throw new AggregateException(errors);
             Instance = null;
         }
     }
@@ -262,6 +287,9 @@ namespace SprocketAdvancedAPS.Systems
         private readonly Dictionary<string, AudioClip> _clips = new();
         private readonly List<(GameObject Object, float Until)> _voices = new();
         private readonly HashSet<string> _warnings = new();
+        // Profiles whose clip could not be built. Latched so a broken profile costs one
+        // decode attempt, not a file read plus resample on every single shot.
+        private readonly HashSet<string> _clipFailed = new();
         private bool _disposed;
 
         internal APSAudioManager(ManualLogSource log)
@@ -303,6 +331,7 @@ namespace SprocketAdvancedAPS.Systems
             {
                 Update();
                 if (_voices.Count >= 24 || !float.IsFinite(volume) || volume <= 0) return;
+                if (_clipFailed.Contains(profile)) return;
                 if (!_clips.TryGetValue(profile, out var clip))
                 {
                     int rate = 44100;
@@ -322,13 +351,13 @@ namespace SprocketAdvancedAPS.Systems
                         if (_warnings.Add(profile)) _log.LogWarning($"[SAAPS] {profile} WAV unavailable; original synthetic shot fallback: {ex.Message}");
                         samples = APSWave.Synthesize(profile);
                     }
-                    clip = AudioClip.Create("SAAPS_" + profile, samples.Length, 1, rate, false);
                     try
                     {
-                        if (!clip.SetData(samples, 0)) throw new InvalidOperationException("AudioClip.SetData failed.");
+                        clip = AudioClip.Create("SAAPS_" + profile, samples.Length, 1, rate, false);
+                        if (clip == null || !clip.SetData(samples, 0)) throw new InvalidOperationException("AudioClip creation or SetData failed.");
                         _clips.Add(profile, clip);
                     }
-                    catch { UnityEngine.Object.Destroy(clip); throw; }
+                    catch { if (clip != null) UnityEngine.Object.Destroy(clip); _clipFailed.Add(profile); throw; }
                 }
                 go = new GameObject("SAAPS_Audio");
                 go.transform.position = position;
@@ -360,7 +389,7 @@ namespace SprocketAdvancedAPS.Systems
             _disposed = true;
             foreach (var voice in _voices) if (voice.Object != null) UnityEngine.Object.Destroy(voice.Object);
             foreach (var clip in _clips.Values) if (clip != null) UnityEngine.Object.Destroy(clip);
-            _voices.Clear(); _clips.Clear(); _warnings.Clear();
+            _voices.Clear(); _clips.Clear(); _warnings.Clear(); _clipFailed.Clear();
             Instance = null;
         }
     }

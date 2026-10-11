@@ -286,8 +286,10 @@ function New-SystemMesh($Shape) {
             Add-Box $vertices $faces 0.105 0 0 0.07 0.035 0.19
             Add-ChamferBox $vertices $faces 0 0.035 -0.10 0.25 0.235 0.175 0.027
             Add-ChamferBox $vertices $faces 0 0.037 0.075 0.255 0.232 0.019 0.034
-            # Reference shows the painted protective cover, not an exposed red/black lens.
-            Add-Tube $vertices $faces 0 0.154 0.093 0.205 0.016 48 0
+            # Uncovered emitter variant: painted bezel, recessed metal seat and IR filter glass.
+            # Local close-up has its cover fitted; glass tint/depth are modeling estimates.
+            Add-Tube $vertices $faces 0 0.154 0.093 0.205 0.025 48 0 0 0.010
+            Add-Tube $vertices $faces 0 0.154 0.105 0.155 0.005 48 0 0 0 2
             foreach ($sign in -1, 1) {
                 $x = $sign * 0.133
                 for ($i = 0; $i -lt 12; $i++) {
@@ -427,7 +429,9 @@ function New-SystemMesh($Shape) {
         }
         $mapped.Add(@{ v = $indices; t = $face.t; surface = $surface })
     }
-    return @{ vertices = @($split); normals = @($normals); uv = @($uvs); faces = @($mapped) }
+    $mesh = @{ vertices = @($split); normals = @($normals); uv = @($uvs); faces = @($mapped) }
+    if ($Shape -eq 'shtora1') { $mesh.sensorTint = @(0.55, 0.07, 0.10) }
+    return $mesh
 }
 
 # Depth-buffered triangles use the same reversed fan as APSModelAssets, not painter's
@@ -457,7 +461,7 @@ public static class SAAPSMeshPreview {
             bitmap.Save(path,ImageFormat.Png);
         }
     }
-    public static void Save(double[] vertices, double[] normals, double[] uv, int[] triangles, string atlasPath, string path, int size, double yaw, double tilt) {
+    public static void Save(double[] vertices, double[] normals, double[] uv, int[] triangles, int[] surfaces, double[] sensorTint, string atlasPath, string path, int size, double yaw, double tilt) {
         int count = vertices.Length / 3;
         double[] x = new double[count], y = new double[count], z = new double[count];
         double cy = Math.Cos(yaw), sy = Math.Sin(yaw), ct = Math.Cos(tilt), st = Math.Sin(tilt);
@@ -511,6 +515,8 @@ public static class SAAPSMeshPreview {
                 double u = wa*uv[2*a]+wb*uv[2*b]+wc*uv[2*c];
                 double v = wa*uv[2*a+1]+wb*uv[2*b+1]+wc*uv[2*c+1];
                 var colour = Color.FromArgb(texture[Math.Min(511,Math.Max(0,(int)((1-v)*511)))*512+Math.Min(511,Math.Max(0,(int)(u*511)))]);
+                if (surfaces[t/3] == 2 && sensorTint.Length == 3)
+                    colour = Color.FromArgb(255,(int)(255*sensorTint[0]),(int)(255*sensorTint[1]),(int)(255*sensorTint[2]));
                 double snx = wa*normals[3*a]+wb*normals[3*b]+wc*normals[3*c];
                 double sny = wa*normals[3*a+1]+wb*normals[3*b+1]+wc*normals[3*c+1];
                 double snz = wa*normals[3*a+2]+wb*normals[3*b+2]+wc*normals[3*c+2];
@@ -552,12 +558,14 @@ public static class SAAPSMeshPreview {
 
 function Write-Icon($Mesh, [string]$Path, [int]$Size = 256, [double]$Yaw = 0.65, [double]$Tilt = 0.3) {
     $triangles = [System.Collections.Generic.List[int]]::new()
+    $surfaces = [System.Collections.Generic.List[int]]::new()
     foreach ($face in $Mesh.faces) {
         for ($i = 2; $i -lt $face.v.Count; $i++) {
             $triangles.Add([int]$face.v[0]); $triangles.Add([int]$face.v[$i]); $triangles.Add([int]$face.v[$i - 1])
+            $surfaces.Add([int]$face.surface)
         }
     }
-    [SAAPSMeshPreview]::Save([double[]]$Mesh.vertices, [double[]]$Mesh.normals, [double[]]$Mesh.uv, $triangles.ToArray(), $atlasPath, $Path, $Size, $Yaw, $Tilt)
+    [SAAPSMeshPreview]::Save([double[]]$Mesh.vertices, [double[]]$Mesh.normals, [double[]]$Mesh.uv, $triangles.ToArray(), $surfaces.ToArray(), [double[]]@($Mesh.sensorTint), $atlasPath, $Path, $Size, $Yaw, $Tilt)
 }
 
 [SAAPSMeshPreview]::Atlas($atlasPath)
@@ -609,8 +617,9 @@ $customPart = [ordered]@{
     v = "0.0"; guid = "a91bb31a-2cf1-4d0a-8e31-000000000011"; name = "saaps_custom"
     tags = @("plateStructurePrefab", "saapsCustomPart"); transform = $null
     components = @([ordered]@{ fileID = "plateStructurePrefab"; type = "plateStructurePrefab"; info = [ordered]@{
-        v = "0.0"; mesh = [ordered]@{ v = "0.2"; name = "Custom APS"; smoothAngle = 0; gridSize = 1; format = "freeform"
-            mesh = [ordered]@{ majorVersion = 0; minorVersion = 3; vertices = $customMesh.vertices; faces = $customMesh.faces }
+        # Match native cubePlateStructurePart.json schema; earlier schema combination failed native deserialization.
+        v = "0.0"; mesh = [ordered]@{ v = "0.0"; smoothAngle = 0; gridSize = 1; format = "freeform"
+            mesh = [ordered]@{ majorVersion = 0; minorVersion = 0; vertices = $customMesh.vertices; faces = $customMesh.faces }
         }
     } })
 }

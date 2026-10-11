@@ -1,95 +1,34 @@
 # Verification Status
 
-## Current development — 2026-10-11
+## SAAPS 1.0.2 — 2026-10-11
 
-Environment: .NET 6 SDK; local Sprocket 0.2.55.5 / Unity 6000.3.21f1,
-BepInEx 6.0.0-be.788 IL2CPP and Sprocket Mod API reference assemblies.
-No deployment or public release of current development changes.
+Build references: local Sprocket 0.2.55.5 / Unity 6000.3.21f1, BepInEx 6.0.0-be.788 IL2CPP, .NET 6 SDK. ModAPI is not a compile-time dependency. Current fixes are not installed or published as a Release.
 
-- Release build after settings-state refresh changes: PASS, 0 warnings/errors.
-- `tests/check-metadata.ps1`: manifest/project/assembly author, repo and MIT
-  declaration match; original copyright notice preserved; requested release-body
-  `sp-compat` parses. Dependency shape uses `id/version/when`. Not registry CI or
-  a completed licensing audit.
-- `tests/RegistryCheck.csproj`: production registry/cone/interception/soft-kill
-  helpers, strict custom preset parser/atomic backup and PCM WAV checks PASS.
-- `tests/ModuleCheck/ModuleCheck.csproj`: production custom-zero probability,
-  reload, destroyed state, jam dispatch, disposal and settings-state retention
-  PASS using offline Unity stand-ins. Test subset emits two CS0649 warnings;
-  it does not exercise native projectile application or designer lifecycle.
-- `tests/check-config.ps1`: 76 defaults match production config bindings.
-- `tests/check-parts.ps1`: ten fixed persistent model IDs/GUIDs plus one custom
-  plate prefab; winding/UV/normals/material slots/bounds, <=8,000 triangles per
-  fixed module, eleven localization/icons and thirty preview dimensions PASS.
-  Filled catalog icon RGB channels remain >=150.
-- Native signatures inspected using metadata, not assembly execution. Startup
-  SerializationInfo round-trip check exists but has not run in the game.
-- `release.ps1` checks required custom/audio files, every ZIP entry against its
-  staging bytes and SHA256 hashes. Running it packages locally, never deploys.
+Run `powershell -NoProfile -ExecutionPolicy Bypass -File release.ps1` for offline checks, no-deploy Release build and ZIP entry/hash verification:
 
-These checks do not prove native placement, persistence, likeness, audible
-playback or performance. Prior installed-file hashes refer to an older build,
-not current Custom APS/audio/metadata changes.
+- Metadata: version/author/repository/MIT alignment, retained copyright, optional ModAPI and exact game/loader `sp-compat` draft.
+- Config: shipped defaults match production bindings.
+- Parts: stable IDs/GUIDs, native Custom schema, geometry/UV/normals/material bounds, 8,000-triangle ceiling, localization/icons/previews and icon fill RGB >=150.
+- RegistryCheck: production interception/cone rules, settings/schema/geometry bounds, Unicode/locale, atomic preset backup, settings-only index and WAV decoding. Despite its historical name, not registry CI.
+- ModuleCheck: production module reload, health/disposal, zero probability and settings-state retention with Unity stand-ins. Native gameplay is not exercised.
+- MenuCheck: production grouping, Custom placement callback, editor lifecycle and stale-context guards with stand-ins.
+- EngagementCheck: production classifier/planner/hard-kill/soft-kill/manager paths; CannonHE zero, Hybrid fallback sharing ammo/cooldown, no jam after release, failed jam cooldown, Custom manager exclusion and minimum stand-off. Native release uses a fake register; Slerp uses a simplified test substitute.
+- Optional `tests/check-inspector.ps1`: compiled tooltip-construction inspection via local Mono.Cecil. Not a packaging prerequisite or clean-checkout dependency.
 
-## Remaining blockers
+Offline PASS is not native rendering/gameplay acceptance or a profiler result. Prior installed DLL hashes apply to the older menu/tooltip revision, not 1.0.2.
 
-- Custom APS marking needs actual catalog-to-new-plate call-chain verification.
-  Unmarked ordinary plates must remain ordinary plates. Live owner availability
-  during LoadData, duplicate/mirror/rebuild and cache lifetime need verification.
-- Native geometry trial ownership/cleanup, packed/rivet metadata validation and
-  undo are unresolved. Shared meshes are rejected instead of mutated. Rollback
-  failure is reported; do not save over an original vehicle after that warning.
-- Inspector active/selection guards compile but stale callbacks need live tests.
-- Seven models are photo-reference drafts, not measured replicas. Drozd-2,
-  Arena-M and Zaslin remain placeholders. All thirty views were screened in
-  contact sheets; full-resolution/reference and game-scale acceptance remain
-  pending. Asset schema tests do not measure photographic likeness.
-- Camo/repaint and per-vehicle native material ownership need live validation.
-- Native shell tracer is visual-only; prototype collider/rigidbody presence
-  disables it. No Launch/projectile registration is added. APFSDS appearance
-  and 40 mm effect after verified release remain live checks.
-- Builtin jam cone is 30/20 full degrees around +Z; Afganit hard-kill remains
-  350/65. Shared hybrid ammo/cooldown can block jam after hard-kill launch.
-- Audio is original synthetic PCM, not verified real-reference matching.
-  SetData playback, miss/success timing, 3D volume and unload cleanup need listening.
-- HUD/F7 coverage remain unimplemented. Default profile JSON is reference data,
-  not Custom APS preset format. Top-attack/UAV require native projectile objects.
-- Registry manifest still selects DLL only and has unverified `sprocket:parts`,
-  `sprocket:config`, `sprocket:assets` supply types. CONTRIBUTING describes only
-  supplier-directory destinations for modfile; arbitrary game-root payloads
-  are not allowed for that kind. Do not relabel SAAPS as a loader/patch to bypass
-  this. Full ZIP installation strategy, recommendations and registry CI remain.
-- MIT declarations match LICENSE but do not establish account equivalence or
-  clear previously GPL-labelled/copied material. Legacy GPL assets are excluded
-  from packaging. Third-party/source licensing audit remains required.
-- `sp-compat` is local release-body text only. No GitHub Release was edited.
-  Requested >=0.2.55.5 range does not mean all later game versions were tested.
+## Remaining acceptance
 
-## Required live checks after separate installation approval
+1. Menu contains eleven APS options only under Firepower. Place/edit Custom; marker never applies to ordinary plates. Verify inspector input and stale callbacks.
+2. Preset save/confirmed overwrite/backup, load on another vehicle, invalid input refusal and shared-mesh isolation. Native packed/rivet geometry validation and undo remain native-owned; if apply and rollback both fail, do not overwrite original saves.
+3. Vehicle save, quit/restart/load without external preset; duplicate/mirror/rebuild preserve settings and identity without resetting ammo/health/timers.
+4. Two vehicles with distinct camo; repaint/save-load without shared recolor. Shtora glass stays red/glossy while housing takes camo. Seven photo-reference drafts are not measured replicas; Drozd-2, Arena-M and Zaslin remain placeholders.
+5. Listen to synthetic hard-kill sounds on miss/success; check mute/distance/cleanup. Soft-kill stays silent. Native tracer and 40 mm effect require live confirmation; explosion follows verified native release only. Historical tracer/audio errors do not constitute acceptance of current fixes.
+6. Guided jam cone/range, disable/destroy/release cleanup, Hybrid miss fallback and one ammo/cooldown per attempt. Built-in jam full angles 30/20 degrees; Afganit hard-kill 350/65. Custom minimum stand-off remains strict.
+7. Config reload with non-finite/out-of-range values and invalid keys, optional Harmony patch failure, unload/scene cleanup. Measure projectile-heavy FPS/allocations; idle gating is not a measured performance claim.
 
-1. Place Custom APS; verify marker only on returned new plate. Edit vertices,
-   edges/faces, Unicode name and settings. Ordinary hull/plate stays non-APS.
-2. Save, confirmed overwrite/backup, Save as new, load on another vehicle;
-   check invalid/oversized preset refusal and part isolation. Test shared mesh.
-3. Save vehicle, quit/restart, remove external preset temporarily, load vehicle;
-   verify settings/geometry persist. Duplicate/mirror/rebuild preserve identity
-   and settings without refilling ammo or repairing health/timers.
-4. Two vehicles with distinct camo; repaint/duplicate/save-load without shared
-   recolor. Compare all exterior models at game scale with reference photos.
-5. Hard-kill miss/success sound at emitter, volume/mute/distance and voice cleanup;
-   soft-kill silent. Short native tracer and 40 mm effect only after verified
-   release; no blast damage/spall or extra projectile registrations.
-6. Guided-round jam within cone/range; stops on leaving cone or disabling,
-   destroying/releasing emitter. Incoming speed/tracer retained. Check hybrid
-   hard-kill outside jam cone and shared cooldown.
-7. Module finite ammo, own-round rejection, scene/unload cleanup and measured
-   performance. Inspect logs for serialization/placement warnings.
+HUD/F7 coverage remain unimplemented. Profile JSON is reference data, not preset format. Top-attack/UAV behavior requires corresponding native projectiles.
 
-## Reproduce offline package checks
+Registry auto-install remains blocked: required game-root parts/localization have no supported modfile supplier mapping. Local `sprocket-mod.json` no longer advertises invalid registry types or DLL-only rules. Manual full ZIP only; no upstream CI PASS claimed. Compatibility is pinned to 0.2.55.5 and 6.0.0-be.788 in the Release-body draft; no remote Release/tag changed.
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File release.ps1
-```
-
-No game assemblies, reference photos, local probes/logs, runtime config or user
-presets are distributed. Packaging is not live acceptance or registry approval.
+MIT metadata matches LICENSE, not account equivalence or clearance of third-party material. Preserve separate rights/provenance; reference access does not grant redistribution. No game assemblies, reference downloads, local logs, user configs or presets are packaged.

@@ -1,6 +1,13 @@
 # Changelog
 
-## Unreleased — 2026-10-11
+## [1.0.2] — development, 2026-10-11
+
+- Fix Firepower-only APS grouping and native Custom inspector tooltip construction.
+- Fix CannonHE classification, Hybrid fallback sharing one ammo/cooldown, failed jam attempt costs, Custom manager reload and minimum stand-off.
+- Reduce idle snapshots and preset indexing allocations; validate live multipliers, guard key reads, throttle driver errors, latch audio clip failures and isolate optional patches.
+- Attempt all cleanup steps on startup failure/unload. Remove unused HUD scaffolding and tracked build caches.
+- Pin compatibility draft to locally checked versions; remove unsupported registry-install metadata. Full ZIP remains manual-install only.
+- Add production classifier/dispatch/manager and preset-index regressions; native acceptance remains pending.
 
 - Align author/repository metadata with `bachvnju12/Sprocket-Advanced-Active-Protection`; declare MIT to match existing `LICENSE`, preserving its original copyright notice. This is not a completed audit of third-party or previously GPL-labelled material.
 - Add release-body `sp-compat` declaration in `RELEASE_NOTES.md` and metadata regression check. Dependency schema now uses `id`, `version`, `when`.

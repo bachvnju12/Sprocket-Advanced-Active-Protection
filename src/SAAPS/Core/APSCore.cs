@@ -70,6 +70,8 @@ namespace SprocketAdvancedAPS.Core
             ConfigPerformanceLog = config.Bind("General", "PerformanceLog", false, "Report physics core time and native projectile snapshot reads every 5 seconds.");
             ConfigGlobalDetectionMultiplier = config.Bind("Balance", "GlobalDetectionMultiplier", 1.0f, "Global multiplier for all APS detection ranges.");
             ConfigGlobalReactionMultiplier = config.Bind("Balance", "GlobalReactionMultiplier", 1.0f, "Global multiplier for all APS reaction times (lower = faster).");
+            ConfigGlobalDetectionMultiplier.Value = Multiplier(ConfigGlobalDetectionMultiplier.Value, .1f, 3f);
+            ConfigGlobalReactionMultiplier.Value = Multiplier(ConfigGlobalReactionMultiplier.Value, .1f, 5f);
             ConfigToggleHUD = config.Bind("Keys", "ToggleHUD", Key.H, "Toggle APS HUD visibility.");
             ConfigToggleDebug = config.Bind("Keys", "ToggleDebug", Key.F12, "Toggle debug mode.");
             foreach (var definition in APSDefinitions.All.Values)
@@ -77,11 +79,11 @@ namespace SprocketAdvancedAPS.Core
                 string section = "Modules." + definition.Id;
                 ModuleEnabled[definition.Id] = config.Bind(section, "Enabled", true, "Enable this APS system.");
                 ModuleRange[definition.Id] = config.Bind(section, "RangeMultiplier", 1f, "Multiplier for this system's detection and engagement range.");
-                ModuleRange[definition.Id].Value = Mathf.Clamp(ModuleRange[definition.Id].Value, 0.1f, 3f);
+                ModuleRange[definition.Id].Value = Multiplier(ModuleRange[definition.Id].Value, .1f, 3f);
                 ModuleReaction[definition.Id] = config.Bind(section, "ReactionMultiplier", 1f, "Multiplier for this system's reaction time.");
-                ModuleReaction[definition.Id].Value = Mathf.Clamp(ModuleReaction[definition.Id].Value, 0.1f, 5f);
+                ModuleReaction[definition.Id].Value = Multiplier(ModuleReaction[definition.Id].Value, .1f, 5f);
                 ModuleIntercept[definition.Id] = config.Bind(section, "InterceptMultiplier", 1f, "Multiplier for this system's intercept probability.");
-                ModuleIntercept[definition.Id].Value = Mathf.Clamp01(ModuleIntercept[definition.Id].Value);
+                ModuleIntercept[definition.Id].Value = Multiplier(ModuleIntercept[definition.Id].Value, 0f, 1f);
                 if (definition.Type == APSType.SoftKill) continue;
                 ModuleSpeedBased[definition.Id] = config.Bind(section, "SpeedBasedInterception", true, "Use projectile speed instead of threat-class eligibility for hard-kill. Intercept probability still applies.");
                 ModuleMaxSpeed[definition.Id] = config.Bind(section, "MaxInterceptSpeed", definition.MaxEngagementSpeed, "Maximum hard-kill projectile speed in m/s; must be finite and positive.");
@@ -93,10 +95,20 @@ namespace SprocketAdvancedAPS.Core
             }
         }
 
+        internal static float Multiplier(float value, float minimum, float maximum) => float.IsFinite(value) ? Math.Clamp(value, minimum, maximum) : 1f;
+        private static bool Pressed(Keyboard keyboard, Key key)
+        {
+            if (key == Key.None || !Enum.IsDefined(typeof(Key), key)) return false;
+            try { return keyboard[key].wasPressedThisFrame; }
+            catch (Exception) { return false; }
+        }
+
         internal static bool IsModuleEnabled(string id) => !ModuleEnabled.TryGetValue(id, out var entry) || entry.Value;
-        internal static float ModuleRangeMultiplier(string id) => ModuleRange.TryGetValue(id, out var entry) ? entry.Value : 1f;
-        internal static float ModuleReactionMultiplier(string id) => ModuleReaction.TryGetValue(id, out var entry) ? entry.Value : 1f;
-        internal static float ModuleInterceptMultiplier(string id) => ModuleIntercept.TryGetValue(id, out var entry) ? entry.Value : 1f;
+        internal static float DetectionMultiplier => Multiplier(ConfigGlobalDetectionMultiplier.Value, .1f, 3f);
+        internal static float ReactionMultiplier => Multiplier(ConfigGlobalReactionMultiplier.Value, .1f, 5f);
+        internal static float ModuleRangeMultiplier(string id) => ModuleRange.TryGetValue(id, out var entry) ? Multiplier(entry.Value, .1f, 3f) : 1f;
+        internal static float ModuleReactionMultiplier(string id) => ModuleReaction.TryGetValue(id, out var entry) ? Multiplier(entry.Value, .1f, 5f) : 1f;
+        internal static float ModuleInterceptMultiplier(string id) => ModuleIntercept.TryGetValue(id, out var entry) ? Multiplier(entry.Value, 0f, 1f) : 1f;
 
         internal void Update()
         {
@@ -105,13 +117,13 @@ namespace SprocketAdvancedAPS.Core
             // Handle keybinds
             if (UnityEngine.InputSystem.Keyboard.current != null)
             {
-                if (UnityEngine.InputSystem.Keyboard.current[ConfigToggleHUD.Value].wasPressedThisFrame)
+                if (Pressed(UnityEngine.InputSystem.Keyboard.current, ConfigToggleHUD.Value))
                 {
                     ConfigShowHUD.Value = !ConfigShowHUD.Value;
                     _log.LogInfo($"[SAAPS] HUD toggled: {ConfigShowHUD.Value}");
                 }
                 
-                if (UnityEngine.InputSystem.Keyboard.current[ConfigToggleDebug.Value].wasPressedThisFrame)
+                if (Pressed(UnityEngine.InputSystem.Keyboard.current, ConfigToggleDebug.Value))
                 {
                     ConfigDebugMode.Value = !ConfigDebugMode.Value;
                     _log.LogInfo($"[SAAPS] Debug mode toggled: {ConfigDebugMode.Value}");
@@ -155,14 +167,14 @@ namespace SprocketAdvancedAPS.Core
 
         internal void Shutdown()
         {
+            var errors = new List<Exception>();
             foreach (var state in _vehicleStates.Values)
-            {
-                state.Dispose();
-            }
+                try { state.Dispose(); } catch (Exception ex) { errors.Add(ex); }
             _vehicleStates.Clear();
             _reportedEmptyVehicles.Clear();
             _dirtyVehicles.Clear();
             Instance = null;
+            if (errors.Count != 0) throw new AggregateException(errors);
         }
         
         // Runtime APS stays inactive until native weapon-component discovery is verified.
@@ -264,32 +276,32 @@ namespace SprocketAdvancedAPS.Core
         }
 
         private Rigidbody? _body;
-        private bool _bodyResolved;
+        private float _bodyRetryAt;
         internal Vector3 Velocity;
         internal Vector3 Position;
 
         internal void RefreshMotion()
         {
             Position = Vehicle.transform.position;
-            // Resolve once per vehicle; a body destroyed later is re-resolved on the next tick.
-            if (!_bodyResolved)
-            {
-                _body = Vehicle.GetComponent<Rigidbody>() ?? Vehicle.GetComponentInParent<Rigidbody>();
-                _bodyResolved = true;
-            }
-            if (_body == null)
+            // Resolve once; a body that appears, disappears or is replaced later is re-resolved
+            // on the next retry window instead of pinning zero velocity for the vehicle's lifetime.
+            var body = _body;
+            if (body == null || !body)
             {
                 Velocity = Vector3.zero;
-                return;
+                if (Time.unscaledTime < _bodyRetryAt) return;
+                _bodyRetryAt = Time.unscaledTime + 1f;
+                _body = Vehicle.GetComponent<Rigidbody>() ?? Vehicle.GetComponentInParent<Rigidbody>();
+                if (_body == null) return;
+                body = _body;
             }
             try
             {
-                Velocity = _body.velocity;
+                Velocity = body.velocity;
             }
             catch
             {
                 _body = null;
-                _bodyResolved = false;
                 Velocity = Vector3.zero;
             }
         }

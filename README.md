@@ -8,13 +8,13 @@ Hard-kill modules intercept hostile native projectiles. Shtora-1 and Afganit als
 
 - Sprocket **0.2.55.5**, Windows x64.
 - A working **Sprocket Mod Loader / BepInEx 6 IL2CPP** setup.
-- **Sprocket Mod API >= 1.1.0, < 2.0.0**.
+- Sprocket Mod API is optional. SAAPS owns its APS menu and icons; neither requires the MelonLoader 0.3.0.0 API nor the BepInEx 1.1.x API. Native/live checks for both setups remain pending.
 - Quality of Life and other optional mods are not required.
 
 ## Install
 
-1. Start the game once with the mod loader and Sprocket Mod API installed, then close it.
-2. Download the `SprocketAdvancedAPS-1.0.0-*.zip` release.
+1. Start the game once with BepInEx 6 IL2CPP installed to generate interop assemblies, then close it.
+2. Download the `SprocketAdvancedAPS-1.0.2-*.zip` release.
 3. Extract the ZIP into the Sprocket installation folder, next to `Sprocket.exe`. Merge the included `BepInEx` and `Sprocket_Data` folders.
 4. Launch the game. Open **Firepower > Active Protection Systems** in the Vehicle Designer and place an APS module on your vehicle.
 
@@ -47,9 +47,11 @@ Point soft-kill emitters along their local **+Z** axis toward the desired arc. E
 
 Hard-kill uses a native shell visual adapter and requests a **40 mm explosion effect only after a verified interception**. Visual failure does not prevent interception. Native tracer appearance and vehicle paint/camo synchronization still need live testing.
 
+Shtora-1 uses an uncovered IR-filter variant: recessed wine-red opaque glossy glass inside a painted bezel. Glass keeps its own color; housing retains native vehicle paint/camo. Tint/depth are modeling estimates; the local reference photo has its painted cover fitted. No emission or beam is added. HDRP reflections and camo separation remain unverified in game.
+
 ## Custom APS — development feature
 
-1. Place **Custom APS** from the APS catalog. Only a successfully marked custom plate gets the Custom APS inspector; ordinary hull/plate parts must not become APS.
+1. Open **Firepower > Active Protection Systems > Custom APS**. Selection uses the native editable plate loader. Only a successfully marked Custom plate gets the APS inspector; ordinary plates remain unchanged. This revision still needs in-game acceptance.
 2. Use native plate vertex/edge/face tools for its shape. Local **+Z** is forward. Open **Custom APS** in the plate inspector to set a Unicode name, starting profile, type, ranges, full-angle FOV, probabilities, ammo/reload and launch sound.
 3. **Save preset** stores shape and settings. Existing files require **Confirm overwrite (backup kept)**; **Save as new** creates a separate ID. Use **Refresh preset list**, **Saved preset**, then **Load selected preset** on another Custom APS part.
 4. Presets live at `BepInEx/config/SprocketAdvancedAPS/CustomAPS/<id>.json`. Vehicle serialization is intended to keep its own settings snapshot and native geometry, independent of the external preset. Quit/restart/load, duplicate and mirror still require live verification.

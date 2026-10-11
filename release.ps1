@@ -12,6 +12,10 @@ $OutputRoot = [IO.Path]::GetFullPath($OutputRoot)
 if ($LASTEXITCODE -ne 0) { throw "Registry regression failed: $LASTEXITCODE" }
 & dotnet run --project (Join-Path $root "tests\ModuleCheck\ModuleCheck.csproj")
 if ($LASTEXITCODE -ne 0) { throw "Module regression failed: $LASTEXITCODE" }
+& dotnet run --project (Join-Path $root "tests\MenuCheck\MenuCheck.csproj")
+if ($LASTEXITCODE -ne 0) { throw "Menu regression failed: $LASTEXITCODE" }
+& dotnet run --project (Join-Path $root "tests\EngagementCheck\EngagementCheck.csproj")
+if ($LASTEXITCODE -ne 0) { throw "Engagement regression failed: $LASTEXITCODE" }
 & (Join-Path $root "build.ps1") -GameRoot $GameRoot -Configuration Release -SkipDeploy
 
 $main = [IO.File]::ReadAllText((Join-Path $root "src\SAAPS\Main.cs"))
@@ -35,7 +39,7 @@ foreach ($dir in "meshes", "icons", "textures", "audio") {
 Copy-Item -Path (Join-Path $root "generated\Sprocket_Data\StreamingAssets\Parts\saaps_*Part.json") -Destination $parts
 Copy-Item -Path (Join-Path $root "generated\Sprocket_Data\StreamingAssets\Localization\en-UK\Parts\saaps_*.xml") -Destination $loc
 Copy-Item -LiteralPath (Join-Path $root "Config\sprocket.advancedaps.cfg") -Destination $examples
-foreach ($file in "README.md", "INSTALL.txt", "CHANGELOG.md", "CREDITS.md", "VERIFICATION.md", "RELEASE_NOTES.md", "LICENSE") {
+foreach ($file in "README.md", "INSTALL.txt", "CHANGELOG.md", "CREDITS.md", "MODEL_REFERENCES.md", "VERIFICATION.md", "RELEASE_NOTES.md", "LICENSE") {
     Copy-Item -LiteralPath (Join-Path $root $file) -Destination $stage
 }
 

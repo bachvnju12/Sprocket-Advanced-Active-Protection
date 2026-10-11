@@ -1,5 +1,5 @@
 # SAAPS build script for Windows.
-# Requires: .NET 6 SDK, Sprocket installation with BepInEx + SprocketModAPI.
+# Requires: .NET 6 SDK, Sprocket installation with BepInEx IL2CPP interop assemblies.
 param(
     [string]$GameRoot = "",
     [string]$Configuration = "Release",
@@ -31,7 +31,7 @@ $GameInterop = Join-Path $GameRoot "BepInEx\interop"
 foreach ($p in @($BepInExCore, $GameInterop)) {
     if (-not (Test-Path $p)) {
         Write-Error "Required path not found: $p"
-        Write-Error "Ensure BepInEx 6 IL2CPP and SprocketModAPI are installed."
+        Write-Error "Install BepInEx 6 IL2CPP and start the game once to generate interop assemblies."
         exit 1
     }
 }

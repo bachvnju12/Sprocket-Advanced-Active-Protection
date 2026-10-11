@@ -61,6 +61,17 @@ internal static class CustomPresetCheck
             (preset with { Settings = settings with { Name = "changed" } }).Save(folder, true);
             Check(File.ReadAllText(path + ".bak") == original && APSCustomPreset.Load(path).Settings.Name == "changed", "Atomic overwrite keeps backup.");
             Check(!Directory.EnumerateFiles(folder, "*.tmp").Any(), "No leaked temp files.");
+            Check(APSCustomPreset.ReadSettings(path).Name == "changed", "Settings index reads names.");
+            File.WriteAllText(path, invalid.ToJsonString());
+            Check(APSCustomPreset.ReadSettings(path).Id == settings.Id, "Index skips mesh validation.");
+            Reject(() => APSCustomPreset.Load(path));
+            foreach (string badJson in new[] { "{}", json + "{}", json.Replace("\"Geometry\":", "\"extra\":0,\"Geometry\":"), json.Replace("\"Geometry\":", "\"Geometry\":null,\"Geometry\":"), json[..^1] })
+            {
+                File.WriteAllText(path, badJson);
+                Reject(() => APSCustomPreset.ReadSettings(path));
+            }
+            File.WriteAllText(path, new string(' ', APSCustomPreset.MaxBytes + 1));
+            Reject(() => APSCustomPreset.ReadSettings(path));
             File.Delete(path);
             Check(APSCustomSettings.Parse(JsonSerializer.Serialize(settings)).Name == settings.Name, "Vehicle settings snapshot needs no preset file.");
         }
