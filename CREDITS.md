@@ -5,7 +5,6 @@
 **Sprocket Advanced APS (SAAPS)** - MIT, matching `LICENSE`.
 
 Repository/maintainer metadata: `bachvnju12`, https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection.
-The existing `Copyright (c) 2026 trongbach672011-ux` notice is preserved. Account equivalence is not established; do not replace the notice based only on a GitHub username.
 
 ## Reference repositories studied
 
