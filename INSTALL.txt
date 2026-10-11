@@ -1,9 +1,9 @@
 SPROCKET ADVANCED APS (SAAPS) - INSTALL GUIDE
 ============================================
-Version: 1.0.0; current source contains unreleased development changes.
+Version: 1.0.2; current source contains unreleased development changes.
 Game: Sprocket 0.2.55.5 / Unity 6000.3.21f1 / Windows x64
 Loader: BepInEx 6.0.0-be.788 IL2CPP
-Dependency: Sprocket Mod API >=1.1.0, <2.0.0
+Sprocket Mod API: optional; APS menu/icons are SAAPS-owned. Both API setups need live verification.
 
 INSTALL (MANUAL ZIP LAYOUT)
 --------------------------
@@ -30,16 +30,15 @@ INSTALL (MANUAL ZIP LAYOUT)
    Old APS saved as add-on structures must be replaced with model parts;
    existing saaps_<system> model components retain their IDs/GUIDs.
 
-Registry auto-install is NOT validated. Current manifest asset rules cannot
-be treated as a working multi-directory ZIP installation. Use manual layout
-only after testing; metadata fixes do not imply registry approval.
+Manual full-ZIP install only. sprocket-mod.json is local package metadata,
+not a registry entry. Required game-root parts/localization lack a supported
+registry mapping; no registry approval or auto-install support is claimed.
 
 CUSTOM APS (DEVELOPMENT; LIVE ACCEPTANCE PENDING)
 -----------------------------------------------
-1. Open Firepower > Active Protection Systems; choose Custom APS alongside
-   the ten fixed modules. Custom uses the native editable add-on prefab loader.
-   Menu visibility and placement still require live verification. Its marker
-   must apply only to the newly created plate, never ordinary plates.
+1. Open Firepower > Active Protection Systems > Custom APS.
+   Custom uses the native editable plate loader. Its marker applies only to
+   the new Custom plate, never ordinary plates. This revision needs live acceptance.
 2. Edit shape with native plate vertex/edge/face tools. Local +Z is forward.
    Custom APS inspector changes name, profile, type, ranges, full-angle FOV,
    probabilities, ammo/reload and launch sound.
@@ -80,9 +79,9 @@ BUILD DEVELOPMENT PACKAGE FROM SOURCE
 -------------------------------------
 powershell -NoProfile -ExecutionPolicy Bypass -File release.ps1
 Optional: -GameRoot "D:\Games\Sprocket" -OutputRoot "D:\Releases\SAAPS"
-Requires .NET 6 SDK and installed game/BepInEx/ModAPI assemblies.
+Requires .NET 6 SDK and installed game/BepInEx interop assemblies. No ModAPI build reference.
 Runs offline tests, builds without deploy, packages ZIP and verifies hashes.
-Output: dist/SprocketAdvancedAPS-1.0.0-<timestamp>.zip and .zip.sha256.
+Output: dist/SprocketAdvancedAPS-1.0.2-<timestamp>.zip and .zip.sha256.
 No game assemblies, reference photos or user data are packaged.
 Packaging is not licensing clearance or live acceptance.
 Do not commit dist/, bin/, obj/, work/ or local game configs.

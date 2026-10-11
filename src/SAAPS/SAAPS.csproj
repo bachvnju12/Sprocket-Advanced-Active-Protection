@@ -6,9 +6,9 @@
     <RootNamespace>SprocketAdvancedAPS</RootNamespace>
 
     <!-- Keep these three in sync with the git tag and ModVersion in Main.cs. -->
-    <Version>1.0.0</Version>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
+    <Version>1.0.2</Version>
+    <AssemblyVersion>1.0.2.0</AssemblyVersion>
+    <FileVersion>1.0.2.0</FileVersion>
 
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -38,10 +38,6 @@
       <Private>false</Private>
     </Reference>
     <Reference Include="$(GameInterop)\*.dll">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="SprocketModAPI">
-      <HintPath>$(SprocketGameRoot)\BepInEx\plugins\SprocketModAPI.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>

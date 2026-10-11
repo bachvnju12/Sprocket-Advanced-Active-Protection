@@ -15,6 +15,7 @@ namespace SprocketAdvancedAPS.Parts
         private static readonly HashSet<string> Failed = new(StringComparer.Ordinal);
         private static readonly List<Material> OwnedMaterials = new();
         private static VehicleMaterial[]? Surfaces;
+        private static VehicleMaterial? ShtoraGlass;
         private static Texture2D? Atlas;
         private static bool SurfaceFailed;
         private static string AssetRoot => Path.Combine(Path.GetDirectoryName(typeof(Main).Assembly.Location)!, "SprocketAdvancedAPS");
@@ -57,6 +58,20 @@ namespace SprocketAdvancedAPS.Parts
                     material.SetFloat("_Metallic", i == 0 ? .65f : 0f);
                     HDMaterial.ValidateMaterial(material);
                     surfaces[i] = new VehicleMaterial(material) { Flags = VehicleMaterialFlags.Unpainted | VehicleMaterialFlags.DisableGrime | VehicleMaterialFlags.CustomShader };
+                }
+                using var document = JsonDocument.Parse(File.ReadAllText(Path.Combine(AssetRoot, "meshes", "saaps_shtora1.json")));
+                if (document.RootElement.TryGetProperty("sensorTint", out var data))
+                {
+                    var tint = data.EnumerateArray().Select(v => v.GetSingle()).ToArray();
+                    if (tint.Length != 3 || tint.Any(v => !float.IsFinite(v) || v < 0 || v > 1))
+                        throw new InvalidDataException("Invalid Shtora glass tint");
+                    var glass = new Material(shader) { name = "SAAPS Shtora IR filter glass", hideFlags = HideFlags.HideAndDontSave };
+                    OwnedMaterials.Add(glass);
+                    glass.SetColor("_BaseColor", new Color(tint[0], tint[1], tint[2], 1));
+                    glass.SetFloat("_Smoothness", .88f);
+                    glass.SetFloat("_Metallic", 0f);
+                    HDMaterial.ValidateMaterial(glass);
+                    ShtoraGlass = new VehicleMaterial(glass) { Flags = VehicleMaterialFlags.Unpainted | VehicleMaterialFlags.DisableGrime | VehicleMaterialFlags.CustomShader };
                 }
                 Surfaces = surfaces;
             }
@@ -149,15 +164,16 @@ namespace SprocketAdvancedAPS.Parts
                     var current = native.Materials;
                     if (surfaces != null)
                     {
+                        var sensor = id == "saaps_shtora1" ? ShtoraGlass ?? surfaces[1] : surfaces[1];
                         var paint = current != null && current.Length > 0 ? current[0] : native.Material;
                         if (paint == null) throw new InvalidOperationException("Native exterior paint unavailable");
-                        if (current == null || current.Length != 3 || current[1]?.Pointer != surfaces[0].Pointer || current[2]?.Pointer != surfaces[1].Pointer)
+                        if (current == null || current.Length != 3 || current[1]?.Pointer != surfaces[0].Pointer || current[2]?.Pointer != sensor.Pointer)
                         {
                             // Native material load owns this per-vehicle wrapper and its painter registration.
                             // Never replace it with a globally shared HDRP material: that loses vehicle camo.
                             paint.Flags &= ~VehicleMaterialFlags.Unpainted;
                             paint.PaintSlot = VehicleMaterialSlot.Exterior;
-                            native.SetMaterials(new Il2CppReferenceArray<VehicleMaterial>(new[] { paint, surfaces[0], surfaces[1] }));
+                            native.SetMaterials(new Il2CppReferenceArray<VehicleMaterial>(new[] { paint, surfaces[0], sensor }));
                             component.Vehicle.Materials.Link(paint, component.VehicleTransform);
                             component.Vehicle.MaterialProcessor.Process(paint, component.VehicleTransform);
                         }
@@ -180,7 +196,7 @@ namespace SprocketAdvancedAPS.Parts
         private static void ReleaseSurfaces()
         {
             foreach (var material in OwnedMaterials) UnityEngine.Object.Destroy(material);
-            OwnedMaterials.Clear(); Surfaces = null;
+            OwnedMaterials.Clear(); Surfaces = null; ShtoraGlass = null;
             if (Atlas != null) UnityEngine.Object.Destroy(Atlas);
             Atlas = null;
         }

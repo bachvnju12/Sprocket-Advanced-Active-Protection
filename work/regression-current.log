@@ -1,3 +1,0 @@
-PASS: production speed, trajectory, reaction, readiness, jamming, deflection, near-field and native slot-liveness rules (offline, no native projectile release).
-PASS: production jam cone boundaries, invalid inputs, inverse-rotation math, hybrid cone separation and held-jam readiness (offline).
-PASS: production registry resolves 10 generated model IDs and rejects vanilla/unknown IDs. Native placement still needs live game verification.

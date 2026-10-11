@@ -30,11 +30,11 @@ using SerializationInfo = Il2CppSystem.Runtime.Serialization.SerializationInfo;
 namespace SprocketAdvancedAPS
 {
     [BepInPlugin(PluginGuid, "Sprocket Advanced APS", ModVersion)]
-    [BepInDependency("furryaxw.sprocket-mod-api", ">=1.1.0 <2.0.0")]
+    [BepInDependency("furryaxw.sprocket-mod-api", BepInDependency.DependencyFlags.SoftDependency)]
     public sealed class Main : BasePlugin
     {
         internal const string PluginGuid = "sprocket.advancedaps";
-        internal const string ModVersion = "1.0.0";
+        internal const string ModVersion = "1.0.2";
         internal static ManualLogSource ModLog = null!;
         internal static Main Instance = null!;
         private Harmony? _harmony;
@@ -54,45 +54,50 @@ namespace SprocketAdvancedAPS
                 _harmony.PatchAll(typeof(APSPartHooks));
                 APSCustomRuntime.CheckNativeJsonRoundTrip();
                 _harmony.PatchAll(typeof(APSCustomRuntime));
-                _harmony.PatchAll(typeof(APSCustomInspector));
-                _harmony.PatchAll(typeof(APSModelAssets));
-                _harmony.PatchAll(typeof(APSPartsMenu));
-                _harmony.PatchAll(typeof(APSPartIcons));
-                AddComponent<APSDriver>();
                 _harmony.PatchAll(typeof(ProjectileTracker));
-                Log.LogInfo("[SAAPS] APS model-part runtime loaded; open Firepower > Active Protection Systems and place a SAAPS part (component saaps_<system>). Replace old add-on structures; they do not retain APS component IDs.");
+                foreach (var feature in new[] { typeof(APSCustomInspector), typeof(APSModelAssets), typeof(APSPartsMenu), typeof(APSPartIcons) })
+                    try { new Harmony(PluginGuid + "." + feature.Name).PatchAll(feature); }
+                    catch (Exception ex)
+                    {
+                        try { new Harmony(PluginGuid + "." + feature.Name).UnpatchSelf(); }
+                        catch (Exception rollback) { throw new AggregateException(ex, rollback); }
+                        Log.LogWarning($"[SAAPS] {feature.Name} patches disabled: {ex}");
+                    }
+                AddComponent<APSDriver>();
+                Log.LogInfo("[SAAPS] APS runtime loaded. Optional feature failures, if any, are listed above.");
             }
             catch (Exception ex)
             {
-                _harmony?.UnpatchSelf();
-                APSDriver.Instance?.Dispose();
-                APSSystems.Instance?.Shutdown();
-                APSCore.Instance?.Shutdown();
-                APSPartRegistry.Instance?.Shutdown();
-                APSPartIcons.Cleanup();
-                APSModelAssets.Cleanup();
-                APSCustomRuntime.Clear();
-                APSCustomInspector.Clear();
-                ReleaseModMetadata();
+                Cleanup();
                 Log.LogError("[SAAPS] APS runtime disabled after initialization failure: " + ex);
             }
         }
 
-        public override bool Unload()
+        public override bool Unload() => Cleanup();
+
+        private bool Cleanup()
         {
-            _harmony?.UnpatchSelf();
-            APSDriver.Instance?.Dispose();
-            APSSystems.Instance?.Shutdown();
-            APSCore.Instance?.Shutdown();
-            APSPartRegistry.Instance?.Shutdown();
-            APSPartIcons.Cleanup();
-            APSModelAssets.Cleanup();
-            APSCustomRuntime.Clear();
-            APSCustomInspector.Clear();
-            ReleaseModMetadata();
-            ModLog = null!;
-            Instance = null!;
-            return true;
+            bool complete = true;
+            void Run(Action action)
+            {
+                try { action(); }
+                catch (Exception ex) { complete = false; Log.LogError("[SAAPS] Cleanup failed: " + ex); }
+            }
+            Run(() => APSDriver.Instance?.Dispose());
+            Run(() => _harmony?.UnpatchSelf());
+            foreach (var feature in new[] { typeof(APSCustomInspector), typeof(APSModelAssets), typeof(APSPartsMenu), typeof(APSPartIcons) })
+                Run(() => new Harmony(PluginGuid + "." + feature.Name).UnpatchSelf());
+            Run(() => APSSystems.Instance?.Shutdown());
+            Run(() => APSCore.Instance?.Shutdown());
+            Run(() => APSPartRegistry.Instance?.Shutdown());
+            Run(APSPartIcons.Cleanup);
+            Run(APSModelAssets.Cleanup);
+            Run(APSCustomRuntime.Clear);
+            Run(APSCustomInspector.Clear);
+            Run(APSPartsMenu.Clear);
+            Run(ReleaseModMetadata);
+            if (complete) { ModLog = null!; Instance = null!; }
+            return complete;
         }
 
         private void ReleaseModMetadata()

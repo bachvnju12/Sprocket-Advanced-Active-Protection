@@ -197,7 +197,7 @@ namespace SprocketAdvancedAPS.Systems
             float rangeMultiplier = APSCore.ModuleRangeMultiplier(Definition.Id);
             float distance = toModule.magnitude;
             if (distance < Definition.EngagementRangeMin * rangeMultiplier ||
-                distance > Definition.DetectionRange * APSCore.ConfigGlobalDetectionMultiplier.Value * rangeMultiplier) return false;
+                distance > Definition.DetectionRange * APSCore.DetectionMultiplier * rangeMultiplier) return false;
             if (!APSInterceptRules.Approaching(toModule.sqrMagnitude, Vector3.Dot(toModule, threat.RelativeVelocity),
                 threat.RelativeVelocity.sqrMagnitude, Definition.EngagementRangeMax * rangeMultiplier)) return false;
             if (Definition.Type != APSType.HardKill)
@@ -234,15 +234,6 @@ namespace SprocketAdvancedAPS.Systems
             {
                 if (sector.Contains(threat.Position))
                     return true;
-            }
-            // A round already inside the minimum stand-off is the most dangerous one there is.
-            // Sector.Contains rejects it on range alone, but nothing is gained by waiting it out.
-            if (CoverageSectors.Count == 0) return false;
-            var toModule = threat.Position - Transform.position;
-            if (APSInterceptRules.InsideMinRange(toModule.sqrMagnitude, Definition.EngagementRangeMin * APSCore.ModuleRangeMultiplier(Definition.Id)))
-            {
-                foreach (var sector in CoverageSectors)
-                    if (sector.ContainsDirection(threat.Position)) return true;
             }
             return false;
         }

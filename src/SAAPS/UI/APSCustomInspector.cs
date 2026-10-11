@@ -16,10 +16,10 @@ internal static class APSCustomInspector
     private static string _message = "";
     private static IntPtr _confirmPlate;
     private static string? _confirmId;
-    private static APSCustomPreset[] _presets = Array.Empty<APSCustomPreset>();
+    private static (string Id, string Name)[] _presets = Array.Empty<(string, string)>();
     private static int _selected;
     private static bool _loaded;
-    internal static void Clear() { _presets = Array.Empty<APSCustomPreset>(); _loaded = false; _message = ""; _confirmId = null; _confirmPlate = IntPtr.Zero; _selected = 0; }
+    internal static void Clear() { _presets = Array.Empty<(string, string)>(); _loaded = false; _message = ""; _confirmId = null; _confirmPlate = IntPtr.Zero; _selected = 0; }
 
     [HarmonyPostfix, HarmonyPatch(typeof(PlateStructureEditor), nameof(PlateStructureEditor.OnGUI))]
     private static void Draw(PlateStructureEditor __instance, IGUILayout __0)
@@ -63,7 +63,7 @@ internal static class APSCustomInspector
                 });
             void Button(string label, Action action)
             {
-                UITooltip tooltip = null!;
+                var tooltip = new UITooltip(label, "");
                 ui.Button(label, DelegateSupport.ConvertDelegate<UnityAction>((Action)(() => Run(action)))!, ref tooltip);
             }
             void Select(string label, string[] labels, int index, Action<int> action)
@@ -132,30 +132,31 @@ internal static class APSCustomInspector
             Button("Refresh preset list", Reload);
             if (_presets.Length > 0)
             {
-                Select("Saved preset", _presets.Select(p => p.Settings.Name + " [" + p.Settings.Id[..8] + "]").ToArray(), _selected, i => _selected = i);
+                Select("Saved preset", _presets.Select(p => p.Name + " [" + p.Id[..8] + "]").ToArray(), _selected, i => _selected = i);
                 Button("Load selected preset", () => APSCustomRuntime.Apply(plate,
-                    APSCustomPreset.Load(APSCustomPreset.PathFor(APSCustomRuntime.Folder, _presets[_selected].Settings.Id))));
+                    APSCustomPreset.Load(APSCustomPreset.PathFor(APSCustomRuntime.Folder, _presets[_selected].Id))));
             }
             if (_message.Length > 0) ui.InfoField(_message, 2);
         }
-        catch (Exception ex) { Main.ModLog.LogWarning("[SAAPS] Custom APS inspector: " + ex.Message); }
+        catch (Exception ex) { Main.ModLog.LogWarning("[SAAPS] Custom APS inspector: " + ex); }
         finally { __0.EndAllDropdowns(); }
     }
     private static int Integer(float v) => float.IsFinite(v) && v == MathF.Truncate(v) && v >= 0 && v <= 256 ? (int)v : throw new InvalidDataException("Expected bounded integer.");
     private static float[] Replace(float[] values, int i, float v) { var copy = (float[])values.Clone(); copy[i] = v; return copy; }
     private static void Reload()
     {
-        var presets = new List<APSCustomPreset>();
+        // Index settings only; geometry validation and cloning happen on apply.
+        var presets = new List<(string Id, string Name)>();
         if (Directory.Exists(APSCustomRuntime.Folder))
             foreach (string path in Directory.EnumerateFiles(APSCustomRuntime.Folder, "*.json").Take(512))
                 try
                 {
-                    var p = APSCustomPreset.Load(path);
-                    if (!string.Equals(Path.GetFileName(path), p.Settings.Id + ".json", StringComparison.OrdinalIgnoreCase) || presets.Any(x => x.Settings.Id == p.Settings.Id)) continue;
-                    presets.Add(p);
+                    var settings = APSCustomPreset.ReadSettings(path);
+                    if (!string.Equals(Path.GetFileName(path), settings.Id + ".json", StringComparison.OrdinalIgnoreCase) || presets.Any(x => x.Id == settings.Id)) continue;
+                    presets.Add((settings.Id, settings.Name));
                 }
                 catch (Exception ex) { Main.ModLog.LogWarning("[SAAPS] Preset skipped: " + Path.GetFileName(path) + ": " + ex.Message); }
-        _presets = presets.OrderBy(p => p.Settings.Name, StringComparer.OrdinalIgnoreCase).ToArray();
+        _presets = presets.OrderBy(p => p.Name, StringComparer.OrdinalIgnoreCase).ToArray();
         _selected = Math.Clamp(_selected, 0, Math.Max(0, _presets.Length - 1));
     }
 }

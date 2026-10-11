@@ -304,7 +304,7 @@ namespace SprocketAdvancedAPS.Systems
                         threat.EngagingModule = null;
                         continue;
                     }
-                    float reactionTime = module.Definition.ReactionTime * APSCore.ConfigGlobalReactionMultiplier.Value * APSCore.ModuleReactionMultiplier(module.Definition.Id);
+                    float reactionTime = module.Definition.ReactionTime * APSCore.ReactionMultiplier * APSCore.ModuleReactionMultiplier(module.Definition.Id);
                     // Report the failing gate separately: a shared throttle with ENGAGE hid both of these.
                     string? reason = !module.IsInDispatchEnvelope(threat) ? "envelope" :
                         !APSInterceptRules.ReactionSatisfied(Time.time, threat.DetectionTime, reactionTime, threat.TimeToImpact) ? "reaction" : null;
@@ -323,10 +323,9 @@ namespace SprocketAdvancedAPS.Systems
                     {
                         // A hybrid system launches first; the round is gone on success, so jam only
                         // whatever survives. A soft-kill-only system just jams.
-                        if (module.Definition.Type == APSType.Hybrid)
-                            APSHardKillSystem.Instance?.FireCountermeasure(module, threat);
-                        if (module.RemainingCountermeasures > 0)
-                            APSSoftKillSystem.Instance?.ApplySoftKill(module, threat);
+                        bool launched = module.Definition.Type == APSType.Hybrid &&
+                            APSHardKillSystem.Instance?.FireCountermeasure(module, threat) == true;
+                        APSSoftKillSystem.Instance?.ApplySoftKill(module, threat, launched);
                     }
                 }
             }
@@ -354,21 +353,21 @@ namespace SprocketAdvancedAPS.Systems
             _log = log;
         }
 
-        internal void FireCountermeasure(APSModuleState module, ThreatTrack threat)
+        internal bool FireCountermeasure(APSModuleState module, ThreatTrack threat)
         {
-            if (_disposed) return;
+            if (_disposed) return false;
 
             // Refresh native state immediately before consuming ammo or releasing a projectile.
             if (!APSCore.ConfigEnabled.Value || !APSThreatTracker.Refresh(threat, module.Vehicle, module.VehicleState.Velocity) || !module.CanEngage(threat) ||
                 !APSInterceptRules.ReactionSatisfied(Time.time, threat.DetectionTime,
-                    module.Definition.ReactionTime * APSCore.ConfigGlobalReactionMultiplier.Value * APSCore.ModuleReactionMultiplier(module.Definition.Id),
-                    threat.TimeToImpact)) return;
+                    module.Definition.ReactionTime * APSCore.ReactionMultiplier * APSCore.ModuleReactionMultiplier(module.Definition.Id),
+                    threat.TimeToImpact)) return false;
 
             if (module.RemainingCountermeasures <= 0)
             {
                 if (APSCore.ConfigDebugMode.Value)
                     _log.LogWarning($"[SAAPS] {module.Definition.Name} out of countermeasures!");
-                return;
+                return false;
             }
 
             // Consume countermeasure
@@ -411,6 +410,7 @@ namespace SprocketAdvancedAPS.Systems
             module.AssignedThreats.Remove(threat);
             threat.IsEngaged = false;
             threat.EngagingModule = null;
+            return true;
         }
 
         private bool InterceptProjectile(APSModuleState module, ThreatTrack threat)
@@ -469,6 +469,8 @@ namespace SprocketAdvancedAPS.Systems
         internal static APSSoftKillSystem? Instance { get; private set; }
         private readonly ManualLogSource _log;
         private readonly Dictionary<(IntPtr Register, int Id), JammingState> _jammedProjectiles = new();
+        // Reused every physics tick; jamming is usually empty and must not allocate then.
+        private readonly List<(IntPtr Register, int Id)> _scratchRemoval = new();
         private bool _disposed;
 
         internal APSSoftKillSystem(ManualLogSource log)
@@ -477,23 +479,39 @@ namespace SprocketAdvancedAPS.Systems
             _log = log;
         }
 
-        internal void ApplySoftKill(APSModuleState module, ThreatTrack threat)
+        internal void ApplySoftKill(APSModuleState module, ThreatTrack threat, bool launched = false)
         {
             if (_disposed) return;
 
             // Only soft-kill/hybrid systems jam, and only guided rounds can lose a lock.
             if (!APSCore.ConfigEnabled.Value || !APSThreatClassifier.IsGuided(threat.ThreatClass) ||
                 !APSThreatTracker.Refresh(threat, module.Vehicle, module.VehicleState.Velocity) ||
-                !module.CanPrepare(threat) || !module.IsInJamEnvelope(threat.Position)) return;
-            if (!APSInterceptRules.JamReady(module.Definition.Type != APSType.HardKill, module.IsEnabled && APSCore.IsModuleEnabled(module.Definition.Id),
-                module.IsOperational, module.IsDestroyed, module.Health, module.RemainingCountermeasures, module.CooldownRemaining, threat.IsFriendly)) return;
+                !module.IsInJamEnvelope(threat.Position)) return;
+            if (launched)
+            {
+                if (module.Definition.Type != APSType.Hybrid ||
+                    !APSInterceptRules.JamHeld(module.IsEnabled && APSCore.IsModuleEnabled(module.Definition.Id),
+                        module.IsOperational, module.IsDestroyed, module.Health, threat.IsFriendly)) return;
+            }
+            else if (!module.CanPrepare(threat) ||
+                !APSInterceptRules.JamReady(module.Definition.Type != APSType.HardKill, module.IsEnabled && APSCore.IsModuleEnabled(module.Definition.Id),
+                    module.IsOperational, module.IsDestroyed, module.Health, module.RemainingCountermeasures, module.CooldownRemaining, threat.IsFriendly)) return;
 
             float jamProb = module.GetSoftKillProbability(threat.ThreatClass);
             if (jamProb <= 0f) return;
 
+            if (_jammedProjectiles.ContainsKey((threat.ProjectilePtr, threat.ProjectileId)))
+            {
+                module.AssignedThreats.Remove(threat);
+                threat.IsEngaged = false;
+                threat.EngagingModule = null;
+                return;
+            }
+            if (!launched) module.ConsumeCountermeasure();
+            module.AssignedThreats.Remove(threat);
+            threat.IsEngaged = false;
+            threat.EngagingModule = null;
             if (UnityEngine.Random.value >= jamProb) return;
-
-            module.ConsumeCountermeasure();
 
             // Keyed by register + id: the native ID counter restarts per register.
             _jammedProjectiles[(threat.ProjectilePtr, threat.ProjectileId)] = new JammingState
@@ -522,7 +540,9 @@ namespace SprocketAdvancedAPS.Systems
             if (_disposed) return;
 
             // Apply jamming to projectiles
-            var toRemove = new List<(IntPtr Register, int Id)>();
+            if (_jammedProjectiles.Count == 0) return;
+            var toRemove = _scratchRemoval;
+            toRemove.Clear();
 
             foreach (var kvp in _jammedProjectiles)
             {
@@ -617,6 +637,7 @@ namespace SprocketAdvancedAPS.Systems
         {
             _disposed = true;
             _jammedProjectiles.Clear();
+            _scratchRemoval.Clear();
             Instance = null;
         }
 
@@ -650,16 +671,6 @@ namespace SprocketAdvancedAPS.Systems
             _log = log;
         }
 
-        internal void Update()
-        {
-            if (_disposed) return;
-
-            foreach (var module in _vehicleState.Modules)
-            {
-                module.Update(Time.deltaTime);
-            }
-        }
-
         internal void FixedUpdate()
         {
             if (_disposed) return;
@@ -670,7 +681,7 @@ namespace SprocketAdvancedAPS.Systems
                 if (module.IsDestroyed || !module.IsOperational || !module.IsEnabled) continue;
 
                 var def = module.Definition;
-                if (def.ReloadTime > 0f && module.RemainingCountermeasures < def.CountermeasureCapacity)
+                if (def.CustomSettings == null && def.ReloadTime > 0f && module.RemainingCountermeasures < def.CountermeasureCapacity)
                 {
                     float timeSinceLastFire = Time.time - module.LastFireTime;
                     if (timeSinceLastFire >= def.ReloadTime)

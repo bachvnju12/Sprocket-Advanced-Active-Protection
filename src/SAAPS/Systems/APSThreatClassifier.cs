@@ -148,7 +148,7 @@ namespace SprocketAdvancedAPS.Systems
                 }
                 else if (IsHighExplosiveBehaviour(defName))
                 {
-                    threatClass = ThreatClass.HE | ThreatClass.CannonHE;
+                    threatClass = ThreatClass.CannonHE;
                     guidance = GuidanceType.None;
                 }
                 else if (IsRocketBehaviour(defName))
@@ -325,7 +325,7 @@ namespace SprocketAdvancedAPS.Systems
             float maxRange = 0f;
             foreach (var module in _vehicleState.Modules)
                 if (module.IsEnabled && module.IsOperational && !module.IsDestroyed && APSCore.IsModuleEnabled(module.Definition.Id))
-                    maxRange = Mathf.Max(maxRange, module.Definition.DetectionRange * APSCore.ConfigGlobalDetectionMultiplier.Value * APSCore.ModuleRangeMultiplier(module.Definition.Id));
+                    maxRange = Mathf.Max(maxRange, module.Definition.DetectionRange * APSCore.DetectionMultiplier * APSCore.ModuleRangeMultiplier(module.Definition.Id));
 
             foreach (var pair in ProjectileTracker.Snapshot)
             {
@@ -382,7 +382,7 @@ namespace SprocketAdvancedAPS.Systems
                     {
                         if (!module.IsEnabled || !APSCore.IsModuleEnabled(module.Definition.Id) || !module.IsOperational || module.IsDestroyed) continue;
                         if (!module.SupportsThreat(threatClass, speed, detection: true)) continue;
-                        if (distance > module.Definition.DetectionRange * APSCore.ConfigGlobalDetectionMultiplier.Value * APSCore.ModuleRangeMultiplier(module.Definition.Id)) continue;
+                        if (distance > module.Definition.DetectionRange * APSCore.DetectionMultiplier * APSCore.ModuleRangeMultiplier(module.Definition.Id)) continue;
 
                         // Check FOV
                         if (!IsInModuleFOV(module, position, vehicle)) continue;

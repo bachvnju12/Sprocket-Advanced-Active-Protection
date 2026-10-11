@@ -201,7 +201,33 @@ internal sealed record APSCustomPreset(APSCustomSettings Settings, JsonElement G
         }
         finally { if (File.Exists(temp)) File.Delete(temp); }
     }
-    internal static APSCustomPreset Load(string path)
+    internal static APSCustomPreset Load(string path) => Parse(new System.Text.UTF8Encoding(false, true).GetString(Read(path)));
+
+    internal static APSCustomSettings ReadSettings(string path)
+    {
+        var reader = new Utf8JsonReader(Read(path), new JsonReaderOptions { MaxDepth = 32 });
+        if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject) throw new InvalidDataException("Expected preset object.");
+        APSCustomSettings? settings = null;
+        bool geometry = false;
+        while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+        {
+            if (reader.TokenType != JsonTokenType.PropertyName) throw new InvalidDataException("Expected preset field.");
+            string field = reader.GetString()!;
+            if (!reader.Read()) throw new InvalidDataException("Missing preset value.");
+            if (field == "Settings" && settings == null)
+            {
+                using var document = JsonDocument.ParseValue(ref reader);
+                settings = APSCustomSettings.Parse(document.RootElement);
+            }
+            else if (field == "Geometry" && !geometry) { geometry = true; reader.Skip(); }
+            else throw new InvalidDataException("Unknown or duplicate preset field: " + field);
+        }
+        if (settings == null || !geometry || reader.TokenType != JsonTokenType.EndObject || reader.Read())
+            throw new InvalidDataException("Incomplete preset or trailing JSON.");
+        return settings;
+    }
+
+    private static byte[] Read(string path)
     {
         using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         if (stream.Length > MaxBytes) throw new InvalidDataException("Preset exceeds 2 MiB.");
@@ -214,6 +240,6 @@ internal sealed record APSCustomPreset(APSCustomSettings Settings, JsonElement G
             offset += read;
         }
         if (stream.ReadByte() != -1) throw new InvalidDataException("Preset changed while reading.");
-        return Parse(new System.Text.UTF8Encoding(false, true).GetString(bytes));
+        return bytes;
     }
 }

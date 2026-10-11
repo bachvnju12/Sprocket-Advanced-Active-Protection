@@ -23,7 +23,7 @@ Check(builtin.RemainingCountermeasures == 0, "New custom reload must not change 
 var destroyed = Module(APSType.HardKill);
 destroyed.ConsumeCountermeasure(); destroyed.ConsumeCountermeasure(); destroyed.TakeDamage(1); destroyed.Update(2);
 Check(destroyed.RemainingCountermeasures == 0 && destroyed.IsDestroyed, "Dead module must not reload.");
-var threat = new ThreatTrack { Position = new Vector3(2, 0, 10), Velocity = new Vector3(0, 0, -100), RelativeVelocity = new Vector3(0, 0, -100), ThreatClass = ThreatClass.ATGM_SACLOS };
+var threat = new ThreatTrack { Position = new Vector3(2, 0, 10), Velocity = new Vector3(0, 0, -100), RelativeVelocity = new Vector3(0, 0, -100), ThreatClass = ThreatClass.ATGM_SACLOS, NextDecisionLog = 0, NextWaitLog = 0 };
 var soft = Module(APSType.SoftKill);
 Check(soft.CanPrepare(threat) && soft.IsInDispatchEnvelope(threat) && !soft.CanEngage(threat), "Soft-kill uses jam cone, never hard-kill release gate.");
 var hybrid = Module(APSType.Hybrid);
@@ -47,7 +47,7 @@ namespace SprocketAdvancedAPS.Core
     internal sealed class Entry { internal float Value = 1; }
     internal static class APSCore
     {
-        internal static Entry ConfigGlobalDetectionMultiplier = new();
+        internal static float DetectionMultiplier => 1;
         internal static bool SpeedBasedInterception(APSDefinition d) => true;
         internal static float MinInterceptSpeed(APSDefinition d) => 50;
         internal static float MaxInterceptSpeed(APSDefinition d) => 2000;

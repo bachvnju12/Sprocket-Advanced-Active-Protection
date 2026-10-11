@@ -34,6 +34,14 @@ namespace SprocketAdvancedAPS.Systems
             RegisterIronFist();
             RegisterAmapAds();
             RegisterZaslin();
+            // Preserve built-in HE tuning for native cannon HE now classified without a composite flag.
+            foreach (var definition in _definitions.Values)
+                if ((definition.SupportedThreats & ThreatClass.HE) != 0)
+                {
+                    if (!definition.InterceptProbability.ContainsKey(ThreatClass.CannonHE) &&
+                        definition.InterceptProbability.TryGetValue(ThreatClass.HE, out var probability))
+                        definition.InterceptProbability[ThreatClass.CannonHE] = probability;
+                }
         }
 
         internal static bool TryGet(string id, out APSDefinition definition)
@@ -181,7 +189,7 @@ namespace SprocketAdvancedAPS.Systems
                 MinDetectionSpeed = 70f,
                 MaxDetectionSpeed = 1200f,
                 ReactionTime = 0.06f,
-                SupportedThreats = ThreatClass.RPG | ThreatClass.HEAT | ThreatClass.ATGM_SACLOS | ThreatClass.ATGM_MCLOS | ThreatClass.HE,
+                SupportedThreats = ThreatClass.RPG | ThreatClass.HEAT | ThreatClass.ATGM_SACLOS | ThreatClass.ATGM_MCLOS | ThreatClass.HE | ThreatClass.CannonHE,
                 EngagementRangeMin = 4f,
                 EngagementRangeMax = 25f,
                 EngagementFOVHorizontal = 290f,
@@ -237,7 +245,7 @@ namespace SprocketAdvancedAPS.Systems
                 MinDetectionSpeed = 50f,
                 MaxDetectionSpeed = 1500f,
                 ReactionTime = 0.045f,
-                SupportedThreats = ThreatClass.RPG | ThreatClass.HEAT | ThreatClass.ATGM_SACLOS | ThreatClass.ATGM_MCLOS | ThreatClass.HE | ThreatClass.TopAttack | ThreatClass.UAV_FPV,
+                SupportedThreats = ThreatClass.RPG | ThreatClass.HEAT | ThreatClass.ATGM_SACLOS | ThreatClass.ATGM_MCLOS | ThreatClass.HE | ThreatClass.CannonHE | ThreatClass.TopAttack | ThreatClass.UAV_FPV,
                 EngagementRangeMin = 4f,
                 EngagementRangeMax = 30f,
                 EngagementFOVHorizontal = 330f,
@@ -422,7 +430,7 @@ namespace SprocketAdvancedAPS.Systems
                 MinDetectionSpeed = 60f,
                 MaxDetectionSpeed = 1300f,
                 ReactionTime = 0.05f,
-                SupportedThreats = ThreatClass.RPG | ThreatClass.HEAT | ThreatClass.ATGM_SACLOS | ThreatClass.ATGM_MCLOS | ThreatClass.ATGM_FireAndForget | ThreatClass.HE,
+                SupportedThreats = ThreatClass.RPG | ThreatClass.HEAT | ThreatClass.ATGM_SACLOS | ThreatClass.ATGM_MCLOS | ThreatClass.ATGM_FireAndForget | ThreatClass.HE | ThreatClass.CannonHE,
                 EngagementRangeMin = 5f,
                 EngagementRangeMax = 28f,
                 EngagementFOVHorizontal = 330f,
@@ -479,7 +487,7 @@ namespace SprocketAdvancedAPS.Systems
                 MinDetectionSpeed = 60f,
                 MaxDetectionSpeed = 1200f,
                 ReactionTime = 0.06f,
-                SupportedThreats = ThreatClass.RPG | ThreatClass.HEAT | ThreatClass.ATGM_SACLOS | ThreatClass.ATGM_MCLOS | ThreatClass.ATGM_FireAndForget | ThreatClass.HE,
+                SupportedThreats = ThreatClass.RPG | ThreatClass.HEAT | ThreatClass.ATGM_SACLOS | ThreatClass.ATGM_MCLOS | ThreatClass.ATGM_FireAndForget | ThreatClass.HE | ThreatClass.CannonHE,
                 EngagementRangeMin = 4f,
                 EngagementRangeMax = 26f,
                 EngagementFOVHorizontal = 320f,
@@ -536,7 +544,7 @@ namespace SprocketAdvancedAPS.Systems
                 MinDetectionSpeed = 80f,
                 MaxDetectionSpeed = 1000f,
                 ReactionTime = 0.03f,
-                SupportedThreats = ThreatClass.RPG | ThreatClass.HEAT | ThreatClass.ATGM_SACLOS | ThreatClass.ATGM_MCLOS | ThreatClass.HE,
+                SupportedThreats = ThreatClass.RPG | ThreatClass.HEAT | ThreatClass.ATGM_SACLOS | ThreatClass.ATGM_MCLOS | ThreatClass.HE | ThreatClass.CannonHE,
                 EngagementRangeMin = 2f,
                 EngagementRangeMax = 14f,
                 EngagementFOVHorizontal = 85f,
@@ -592,7 +600,7 @@ namespace SprocketAdvancedAPS.Systems
                 MinDetectionSpeed = 70f,
                 MaxDetectionSpeed = 1100f,
                 ReactionTime = 0.055f,
-                SupportedThreats = ThreatClass.RPG | ThreatClass.HEAT | ThreatClass.ATGM_SACLOS | ThreatClass.ATGM_MCLOS | ThreatClass.HE,
+                SupportedThreats = ThreatClass.RPG | ThreatClass.HEAT | ThreatClass.ATGM_SACLOS | ThreatClass.ATGM_MCLOS | ThreatClass.HE | ThreatClass.CannonHE,
                 EngagementRangeMin = 3f,
                 EngagementRangeMax = 20f,
                 EngagementFOVHorizontal = 150f,
