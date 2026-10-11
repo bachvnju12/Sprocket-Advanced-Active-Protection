@@ -51,7 +51,7 @@ $args += "-p:SprocketGameRoot=`"$GameRoot`""
 Write-Host "Building SAAPS..."
 Write-Host "  GameRoot: $GameRoot"
 Write-Host "  Config:   $Configuration"
-Write-Host "  Deploy:   $(-not $SkipDeploy)"
+Write-Host "  Deploy:   False (use install.ps1 after generating assets)"
 
 & dotnet @args
 if ($LASTEXITCODE -ne 0) {
@@ -60,20 +60,5 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Build succeeded."
-
-if (-not $SkipDeploy) {
-    $deployDir = Join-Path $GameRoot "BepInEx\plugins\SprocketAdvancedAPS"
-    if (-not (Test-Path $deployDir)) {
-        New-Item -ItemType Directory -Force -Path $deployDir | Out-Null
-    }
-
-    foreach ($sub in @("assets", "Config")) {
-        $srcSub = Join-Path $PSScriptRoot $sub
-        if (Test-Path $srcSub) {
-            Copy-Item -Path $srcSub -Destination $deployDir -Recurse -Force
-        }
-    }
-    Write-Host "Deployed assets and Config to $deployDir"
-}
 
 Write-Host "Done."

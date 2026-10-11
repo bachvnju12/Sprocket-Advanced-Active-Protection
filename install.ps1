@@ -17,6 +17,7 @@ $iconsSource = Join-Path $PSScriptRoot "generated\icons"
 $atlasSource = Join-Path $PSScriptRoot "generated\textures\saaps_surfaces.png"
 
 if (-not (Test-Path $GameRoot)) { throw "Game root not found: $GameRoot" }
+if (Get-Process -Name Sprocket -ErrorAction SilentlyContinue) { throw 'Close Sprocket before installation or removal.' }
 
 if ($Remove) {
     foreach ($sourceDir in @((Join-Path $partsRoot "Parts"), (Join-Path $partsRoot "Localization\en-UK\Parts"))) {
@@ -63,6 +64,7 @@ foreach ($file in @($partFiles) + @($locFiles)) {
     }
 }
 
+if (Get-Process -Name Sprocket -ErrorAction SilentlyContinue) { throw 'Sprocket started; installation cancelled.' }
 New-Item -ItemType Directory -Force -Path $pluginDir, $installDir, $partsDir, $locDir | Out-Null
 Copy-Item -LiteralPath $pluginSource -Destination (Join-Path $pluginDir "SprocketAdvancedAPS.dll") -Force
 Copy-Item -Path (Join-Path $partsRoot "Parts\saaps_*Part.json") -Destination $partsDir -Force

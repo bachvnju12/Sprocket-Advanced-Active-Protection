@@ -14,7 +14,7 @@ Hard-kill modules intercept hostile native projectiles. Shtora-1 and Afganit als
 ## Install
 
 1. Start the game once with BepInEx 6 IL2CPP installed to generate interop assemblies, then close it.
-2. Download the `SprocketAdvancedAPS-1.0.2-*.zip` release.
+2. Build the current **1.0.1 source** using `release.ps1` below. The existing GitHub `1.0.1` Release page has no attached ZIP/DLL; its tag predates these source fixes. Do not use GitHub's source ZIP as an install package.
 3. Extract the ZIP into the Sprocket installation folder, next to `Sprocket.exe`. Merge the included `BepInEx` and `Sprocket_Data` folders.
 4. Launch the game. Open **Firepower > Active Protection Systems** in the Vehicle Designer and place an APS module on your vehicle.
 
@@ -78,11 +78,11 @@ ConfigExamples/sprocket.advancedaps.cfg
 
 Use it only if needed; **do not overwrite a customized config**. Release extraction does not install the template into `BepInEx/config`.
 
-HUD and F7 coverage are not implemented. `ShowHUD` and `ToggleHUD` are reserved settings. Custom APS has a native plate inspector extension; fixed-model balance remains in the config. `Config/default-aps-profiles.json` is reference data, not the Custom APS preset format.
+HUD and F7 coverage are not implemented. `ShowHUD` and `ToggleHUD` are reserved settings. Custom APS has a native plate inspector extension; fixed-model balance remains in the config.
 
 ## Status and troubleshooting
 
-Offline tests check metadata, configuration, generated parts, mesh geometry, preset validation/atomic writes, WAV decoding and production module rules. They do not prove live game behavior. Seven models are photo-reference drafts; Drozd-2, Arena-M and Zaslin remain placeholders. None are measured or photo-matched replicas. Custom placement/persistence, paint/camo, tracer appearance and spatial audio need live validation; see [VERIFICATION.md](VERIFICATION.md).
+Local offline checks have covered metadata, configuration, generated parts, geometry, preset validation, WAV decoding and production module rules. Test fixtures are not distributed in this source tree; packaging only checks generated audio and ZIP layout/hashes. Neither proves live behavior. Seven models are photo-reference drafts; Drozd-2, Arena-M and Zaslin remain placeholders. Custom placement/persistence, paint/camo, tracer appearance and spatial audio still need live validation.
 
 Yep, this was built with AI assistance. **Back up your vehicle saves before experimenting.**
 
@@ -96,8 +96,20 @@ With .NET 6 SDK and the required game/mod assemblies installed:
 powershell -NoProfile -ExecutionPolicy Bypass -File release.ps1
 ```
 
-This runs offline tests, builds Release without deploying to the game, and creates a ZIP plus SHA256 checksum under `dist/`. Packaging does not complete live acceptance or the licensing audit. When publishing is separately approved, use `RELEASE_NOTES.md` as the release body so its `sp-compat` comment is present in the body, not only an attachment. Do not commit local `bin/`, `obj/`, `work/` or `dist/` output.
+Git contains runtime source, necessary build/install scripts and audio generator source, the default config template, package metadata, README, LICENSE and release note. `release.ps1` regenerates assets under `generated/`, validates generated audio, builds without deploying and creates a ZIP plus SHA256 checksum under `dist/`. Tests, working notes and generated output stay local, not tracked.
+
+To install that local build with Sprocket closed:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File install.ps1
+```
+
+The installer backs up replaced SAAPS files; runtime config/presets and other mods are not overwritten. `build.ps1` and `dotnet build` never install automatically. Packaging does not prove native acceptance or licensing clearance. Release/tag publication is separate; its body must contain the `sp-compat` comment from `RELEASE_NOTES.md`.
 
 ## License and credits
 
-MIT, matching [LICENSE](LICENSE). Maintainer/repository author: **bachvnju12**, [Sprocket-Advanced-Active-Protection](https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection). Existing copyright notice names `trongbach672011-ux`; it is retained, not treated as proof that these accounts belong to the same person. Third-party licenses remain separate; see [CREDITS.md](CREDITS.md).
+MIT, matching [LICENSE](LICENSE). Maintainer/repository author: **bachvnju12**, [Sprocket-Advanced-Active-Protection](https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection). Existing copyright notice names `trongbach672011-ux`; it is retained, not treated as proof that these accounts belong to the same person. Third-party rights remain separate:
+
+- BepInEx, Harmony and game assemblies are provided by the local installation, not redistributed. Optional Sprocket Mod API is LGPL-3.0-or-later; example-mod-bepinex reference code is GPL-3.0-only. Studying these projects does not grant permission to relicense copied code.
+- Current procedural meshes/atlas and synthetic audio are original project assets; reference photographs are not texture pixels or packaged files. Photo licensing is not fully audited, so photographs must not be redistributed as mod assets.
+- Removed legacy assets/generators retain their GPL-3.0-only labels in Git history; cleanup does not relicense them. Current packaging does not use those files.

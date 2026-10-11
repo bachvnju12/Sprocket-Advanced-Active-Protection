@@ -34,7 +34,7 @@ namespace SprocketAdvancedAPS
     public sealed class Main : BasePlugin
     {
         internal const string PluginGuid = "sprocket.advancedaps";
-        internal const string ModVersion = "1.0.2";
+        internal const string ModVersion = "1.0.1";
         internal static ManualLogSource ModLog = null!;
         internal static Main Instance = null!;
         private Harmony? _harmony;

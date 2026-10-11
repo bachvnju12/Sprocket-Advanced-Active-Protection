@@ -6,11 +6,18 @@
 *.user
 *.suo
 
-# Local probes, logs and reference downloads
+# Local checks, working notes and reference downloads
 /work/
+/tests/
+/CHANGELOG.md
+/CREDITS.md
+/VERIFICATION.md
+/MODEL_REFERENCES.md
+/INSTALL.txt
 *.log
 
-# Reproducible release output; attach ZIP to GitHub Releases instead
+# Reproducible assets and release output stay local
+/generated/
 /dist/
 
 # Keep only the checked-in default config template
