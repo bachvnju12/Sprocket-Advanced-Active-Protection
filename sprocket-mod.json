@@ -7,6 +7,5 @@
   "license": "MIT",
   "category": "gameplay",
   "dependencies": [],
-  "installation": "manual-full-zip",
-  "description": "Ten APS modules and an editable Custom APS plate. Local package metadata, not a SprocketModManager registry entry. Required game-root parts and localization have no supported registry install mapping."
+  "installation": "manual-full-zip"
 }
