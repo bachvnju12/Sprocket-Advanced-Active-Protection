@@ -104,12 +104,8 @@ To install that local build with Sprocket closed:
 powershell -NoProfile -ExecutionPolicy Bypass -File install.ps1
 ```
 
-The installer backs up replaced SAAPS files; runtime config/presets and other mods are not overwritten. `build.ps1` and `dotnet build` never install automatically. Packaging does not prove native acceptance or licensing clearance. Release/tag publication is separate; its body must contain the `sp-compat` comment from `RELEASE_NOTES.md`.
+The installer backs up replaced SAAPS files; runtime config/presets and other mods are not overwritten. `build.ps1` and `dotnet build` never install automatically. Packaging does not prove native acceptance. Release/tag publication is separate; its body must contain the `sp-compat` comment from `RELEASE_NOTES.md`.
 
-## License and credits
+## License
 
-MIT, matching [LICENSE](LICENSE). Maintainer/repository author: **bachvnju12**, [Sprocket-Advanced-Active-Protection](https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection). Existing copyright notice names `trongbach672011-ux`; it is retained, not treated as proof that these accounts belong to the same person. Third-party rights remain separate:
-
-- BepInEx, Harmony and game assemblies are provided by the local installation, not redistributed. Optional Sprocket Mod API is LGPL-3.0-or-later; example-mod-bepinex reference code is GPL-3.0-only. Studying these projects does not grant permission to relicense copied code.
-- Current procedural meshes/atlas and synthetic audio are original project assets; reference photographs are not texture pixels or packaged files. Photo licensing is not fully audited, so photographs must not be redistributed as mod assets.
-- Removed legacy assets/generators retain their GPL-3.0-only labels in Git history; cleanup does not relicense them. Current packaging does not use those files.
+MIT, matching [LICENSE](LICENSE). Repository: [Sprocket-Advanced-Active-Protection](https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection).

@@ -18,6 +18,4 @@ Manual full-ZIP installation only. `sprocket-mod.json` is local package metadata
 
 When publishing separately approved, copy this document into the GitHub Release body; the `sp-compat` comment must be in that body. Compatibility pins the locally checked game/loader versions, not all later releases. No Release/tag is changed by building this package.
 
-Maintainer: bachvnju12. MIT declaration matches LICENSE; original copyright retained. Third-party licenses remain separate. Reference access does not grant copying/redistribution rights; see README license notes.
-
 Registry rules: https://github.com/furryaxw/SprocketModManager/blob/registry/CONTRIBUTING.en.md#the-compatibility-declaration
