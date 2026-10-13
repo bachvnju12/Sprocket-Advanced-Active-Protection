@@ -6,7 +6,7 @@ Adds 10 Active Protection Systems to Sprocket: **Drozd-1, Drozd-2, Arena, Arena-
 - **Soft-kill:** Shtora-1 and Afganit jam guided projectiles.
 - **Custom APS:** editable plate, configurable protection and presets.
 
-[**Download v1.0.2**]([https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection/releases/download/1.0.1/SprocketAdvancedAPS-1.0.1-20261011-131659.zip](https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection/releases/tag/1.0.2)) · [All releases](https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection/releases) · [Report an issue](https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection/issues)
+[**Download v1.0.5**]([[https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection/releases/download/1.0.1/SprocketAdvancedAPS-1.0.1-20261011-131659.zip](https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection/releases/tag/1.0.5)](https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection/releases/tag/1.0.2)) · [All releases](https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection/releases) · [Report an issue](https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection/issues)
 
 ## Requirements
 
