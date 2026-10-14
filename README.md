@@ -85,7 +85,7 @@ Check `BepInEx/LogOutput.log` for `[SAAPS]`. Set `DebugMode = true` in the confi
 ## Build from source
 
 Requires **.NET 6 SDK**, game/mod assemblies and the [v1.0.1 tagged source](https://github.com/bachvnju12/Sprocket-Advanced-Active-Protection/tree/1.0.1).
-
+!-- sp-compat {"hamish.sprocket": ">=0.2.55.5", "bepinex.bepinex": "6.0.0-be.788"} -->
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File release.ps1  # Build ZIP + SHA256 in dist/
 powershell -NoProfile -ExecutionPolicy Bypass -File install.ps1  # Install local build (game closed)
